@@ -21,10 +21,16 @@ try {
   /* empty */
 }
 
+// Do not use Astro.redirect here: with `site` set (e.g. a leftover placeholder),
+// static builds can turn this into an absolute https://example.com/... URL.
+// A relative meta refresh always stays on the current host.
 if (home?.recordType && home?.recordId) {
-  return Astro.redirect(
-    `/records/${encodeURIComponent(home.recordType)}/${encodeURIComponent(home.recordId)}/`,
-  );
+  const path = `/records/${encodeURIComponent(home.recordType)}/${encodeURIComponent(home.recordId)}/`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${path}"><meta name="robots" content="noindex"><link rel="canonical" href="${path}"><title>Redirecting…</title></head><body><p><a href="${path}">Continue to the player site home.</a></p></body></html>`;
+  return new Response(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
 }
 ---
 <Layout title="Player site">
