@@ -1,0 +1,24 @@
+{
+  "recordType": "location",
+  "recordId": "location_1778263569885481",
+  "data": {
+    "id": "location_1778263569885481",
+    "name": "Velmorne",
+    "locationType": "village",
+    "parentLocationId": "location_1778265699952413",
+    "aliases": [],
+    "imageUrl": "",
+    "quote": "",
+    "author": "",
+    "nationData": null,
+    "villageData": {
+      "age": "Ancient. The village was established near to, or more than, a century ago.",
+      "size": "Large. Up to 90 standing structures.",
+      "description": "Age: Ancient. The village was established near to, or more than, a century ago.\nSize: Large. Up to 90 standing structures."
+    },
+    "description": "Velmorne is al rural village located in the forested eastern reaches of <a href=\"/records/location/location_1778265699952413\">Althania</a>, known for its fertile soil, natural springs, and relative isolation from the larger trade roads of the realm. The village is built around an ancient freshwater spring that has long served as both its primary water source and spiritual center.<br>\nVelmorne’s economy is sustained through hunting, forestry, small-scale agriculture, and local brewing. Though modest in size, the village has gained a quiet reputation for unusually rich harvests and vibrant seasonal festivals. Travelers’ accounts often describe the settlement as welcoming, warm, and strangely difficult to leave behind.<br>\nThe village is centered around the Chapel of the Sacred Spring, a centuries-old religious structure erected atop older ruins believed to predate the current faith. Fragments of weathered stone markers and local oral traditions suggest that the region once held significance as a site of fertility worship before the arrival of the modern Althanian church.<br>\nDespite its outward prosperity, Velmorne has periodically been associated with unsettling folklore concerning excessive revelry, disappearances, and strange behavioral changes among visitors and residents alike. These stories are largely dismissed by neighboring settlements as superstition born from the village’s remoteness and unusual customs.",
+    "sections": [],
+    "createdAt": "2026-05-08T20:06:09.885481",
+    "updatedAt": "2026-05-12T15:07:11.664433"
+  }
+}
