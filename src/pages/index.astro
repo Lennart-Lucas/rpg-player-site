@@ -1,6 +1,134 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+import Layout from '../../../layouts/Layout.astro';
+
+type IndexItem = {
+  id: string;
+  name: string;
+  locationType: string;
+  parentLocationId: string | null;
+};
+
+type TreeNode = { item: IndexItem; children: TreeNode[] };
+
+const indexPath = path.join(
+  process.cwd(),
+  'public',
+  'rpg-export',
+  'locations-index.json',
+);
+
+let items: IndexItem[] = [];
+try {
+  const raw = fs.readFileSync(indexPath, 'utf8');
+  const parsed = JSON.parse(raw) as { items?: IndexItem[] };
+  if (Array.isArray(parsed.items)) {
+    items = parsed.items.filter(
+      (i) =>
+        i &&
+        typeof i.id === 'string' &&
+        i.id.length > 0 &&
+        typeof i.name === 'string',
+    );
+  }
+} catch {
+  items = [];
+}
+
+const locationTypeLabels: Record<string, string> = {
+  continent: 'Continent',
+  nation: 'Nation',
+  region: 'Region',
+  city: 'City',
+  village: 'Village',
+  district: 'District',
+  building: 'Building',
+  dungeon: 'Dungeon',
+  cave: 'Cave',
+  landmark: 'Landmark',
+  other: 'Other',
+};
+
+function displayType(code: string): string {
+  return locationTypeLabels[code] ?? code;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function buildTree(rows: IndexItem[]): TreeNode[] {
+  const ids = new Set(rows.map((r) => r.id));
+  const byParent = new Map<string | null, IndexItem[]>();
+  for (const row of rows) {
+    const p =
+      row.parentLocationId &&
+      typeof row.parentLocationId === 'string' &&
+      row.parentLocationId.trim().length > 0 &&
+      ids.has(row.parentLocationId)
+        ? row.parentLocationId
+        : null;
+    const list = byParent.get(p) ?? [];
+    list.push(row);
+    byParent.set(p, list);
+  }
+  for (const list of byParent.values()) {
+    list.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
+  function walk(parent: string | null): TreeNode[] {
+    const list = byParent.get(parent) ?? [];
+    return list.map((item) => ({
+      item,
+      children: walk(item.id),
+    }));
+  }
+  return walk(null);
+}
+
+function renderTree(nodes: TreeNode[]): string {
+  if (nodes.length === 0) return '';
+  const lis = nodes
+    .map((n) => {
+      const href = `/records/location/${encodeURIComponent(n.item.id)}/`;
+      const typeLabel = displayType(n.item.locationType);
+      const nested = renderTree(n.children);
+      return `<li><a href="${escapeHtml(href)}">${escapeHtml(n.item.name)}</a> <span class="meta">(${escapeHtml(typeLabel)})</span>${nested}</li>`;
+    })
+    .join('');
+  return `<ul class="location-tree">${lis}</ul>`;
+}
+
+const roots = buildTree(items);
+const treeHtml = roots.length > 0 ? renderTree(roots) : '';
 ---
-<Layout title="Home" shell shellPath={Astro.url.pathname}>
-  <h1 class="record-title">Home</h1>
+<Layout title="Locations" shell shellPath={Astro.url.pathname}>
+  <h1 class="record-title">Locations</h1>
+  {
+    items.length === 0 ? (
+      <p class="meta">
+        No published locations yet… Players only see locations you mark as
+        published in RPG Manager.
+      </p>
+    ) : (
+      <div class="prose" set:html={treeHtml} />
+    )
+  }
 </Layout>
+
+<style>
+  .location-tree {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin: 0.5rem 0 0;
+  }
+  .location-tree .location-tree {
+    margin-top: 0.35rem;
+  }
+</style>
