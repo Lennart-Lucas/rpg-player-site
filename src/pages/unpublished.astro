@@ -1,11 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 ---
-<Layout title="Not published" description="This page is not on the player site">
+<Layout
+  title="Not published"
+  description="This page is not on the player site"
+  shell
+  shellPath={Astro.url.pathname}
+>
   <h1 class="record-title">Not published</h1>
   <p>
     The GM has not added this record to the player site manifest, or the link
     target does not exist.
   </p>
-  <p><a href="/">Home</a></p>
 </Layout>

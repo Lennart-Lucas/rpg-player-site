@@ -3,6 +3,9 @@ export function htmlForRecord(
   recordType: string,
   data: Record<string, unknown>,
 ): string {
+  if (recordType === 'session') {
+    return htmlForSessionRecord(data);
+  }
   const parts: string[] = [];
 
   const title =
@@ -12,6 +15,20 @@ export function htmlForRecord(
     'Record';
   parts.push(`<h1 class="record-title">${escapeHtml(title)}</h1>`);
   parts.push(`<p class="meta">${escapeHtml(recordType)}</p>`);
+
+  if (recordType === 'campaign') {
+    const ids = data.characterIds;
+    const n = Array.isArray(ids) ? ids.length : 0;
+    const rosterLine =
+      n > 0
+        ? `${n} linked character(s). Character sheets and lore pages appear here only if you add those records to the player site manifest in RPG Manager (Settings → Player site).`
+        : 'No characters linked on this campaign yet.';
+    parts.push(
+      `<section class="block"><h2>Player site</h2><div class="prose"><p>${escapeHtml(
+        rosterLine,
+      )}</p><p>Campaign records do not include a long description field; publish locations, NPCs, or other notes from the manifest for players to read.</p></div></section>`,
+    );
+  }
 
   const htmlSection = (label: string, html: string) => {
     if (!html.trim()) return;
@@ -65,6 +82,35 @@ export function htmlForRecord(
     );
   }
 
+  return parts.join('\n');
+}
+
+function htmlForSessionRecord(data: Record<string, unknown>): string {
+  const parts: string[] = [];
+  const id = typeof data.id === 'string' ? data.id : 'session';
+  const short = id.includes('_') ? (id.split('_').pop() ?? id) : id;
+  parts.push(`<h1 class="record-title">${escapeHtml(`Session ${short}`)}</h1>`);
+  parts.push(`<p class="meta">session</p>`);
+  const plannedRaw = data.plannedAt;
+  if (typeof plannedRaw === 'string' && plannedRaw.trim().length > 0) {
+    const dt = new Date(plannedRaw);
+    if (!Number.isNaN(dt.getTime())) {
+      parts.push(
+        `<section class="block"><h2>Planned</h2><div class="prose"><p>${escapeHtml(
+          dt.toISOString().slice(0, 16).replace('T', ' '),
+        )} UTC</p></div></section>`,
+      );
+    }
+  }
+  const notes = typeof data.notes === 'string' ? data.notes : '';
+  if (notes.trim().length > 0) {
+    parts.push(
+      `<section class="block"><h2>Notes</h2><div class="prose">${notes}</div></section>`,
+    );
+  }
+  if (parts.length <= 2) {
+    parts.push('<p class="empty">No session notes.</p>');
+  }
   return parts.join('\n');
 }
 
