@@ -1,0 +1,20 @@
+{
+  "recordType": "location",
+  "recordId": "location_1778265699952413",
+  "data": {
+    "id": "location_1778265699952413",
+    "name": "Althania",
+    "locationType": "nation",
+    "parentLocationId": null,
+    "aliases": [],
+    "imageUrl": "",
+    "quote": "",
+    "author": "",
+    "nationData": null,
+    "villageData": null,
+    "description": "",
+    "sections": [],
+    "createdAt": "2026-05-08T20:41:39.952413",
+    "updatedAt": "2026-05-12T14:51:00.534184"
+  }
+}
