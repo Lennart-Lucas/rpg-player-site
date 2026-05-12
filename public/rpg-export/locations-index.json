@@ -1,3 +1,10 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "location_1778265699952413",
+      "name": "Althania",
+      "locationType": "nation",
+      "parentLocationId": null
+    }
+  ]
 }
