@@ -1,13 +1,27 @@
 {
-  "exportedAt": "2026-05-11T19:48:22.564497Z",
+  "exportedAt": "2026-05-12T08:28:45.774444Z",
   "home": {
     "recordType": "campaign",
     "recordId": "campaign_1777543502362419"
+  },
+  "homeHub": {
+    "hasCampaign": true,
+    "homeTitle": "The Chapel of Quiet Hungers",
+    "nextSession": {
+      "recordType": "session",
+      "recordId": "session_1777543949518213",
+      "title": "Session 1777543949518213",
+      "plannedAt": "2026-05-15T17:00:00.000Z"
+    }
   },
   "entries": [
     {
       "recordType": "campaign",
       "recordId": "campaign_1777543502362419"
+    },
+    {
+      "recordType": "session",
+      "recordId": "session_1777543949518213"
     }
   ]
 }
