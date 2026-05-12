@@ -1,0 +1,226 @@
+{
+  "recordType": "session",
+  "recordId": "session_1777543949518213",
+  "data": {
+    "id": "session_1777543949518213",
+    "campaignId": "campaign_1777543502362419",
+    "plannedAt": "2026-05-15T19:00:00.000",
+    "notes": "<span class=\"unpublished-ref\" title=\"This note is not on the player site\">Velmorne</span>",
+    "treasures": [],
+    "secretsAndClues": [],
+    "encounterLog": [
+      {
+        "id": "sel_1777830353536592",
+        "at": "2026-05-03T19:45:53.536592",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "encounterStarted",
+        "summary": "Encounter 1777640099574337 started (7 combatants: Nerethis, The Hunger Made Gentle (Lair Action), Nerethis, The Hunger Made Gentle, Cultist of Hunger 2, Cultist of Hunger 1, Florian, Senne, Yusha)"
+      },
+      {
+        "id": "sel_1777830371065575",
+        "at": "2026-05-03T19:46:11.065575",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "statblockAction",
+        "actorCombatantId": "lair_ec_statblock_1777646763901692_1777830346821425_0_init20",
+        "actorName": "The lair",
+        "targetCombatantIds": [
+          "ec_character_1777623323439093_1777830346821425",
+          "ec_character_1777623336817494_1777830346821425",
+          "ec_character_1777623243599950_1777830346821425"
+        ],
+        "targetNames": [
+          "Florian",
+          "Senne",
+          "Yusha"
+        ],
+        "summary": "The lair uses Dreadful Visage against targets: Florian receives no damage. Senne receives no damage. Yusha receives no damage · Conditions: Florian: Gained Frightened; Yusha: Gained Frightened",
+        "payload": {
+          "actionName": "Dreadful Visage",
+          "statblockName": "Nerethis, The Hunger Made Gentle",
+          "damageByTargetId": {
+            "ec_character_1777623323439093_1777830346821425": 0,
+            "ec_character_1777623336817494_1777830346821425": 0,
+            "ec_character_1777623243599950_1777830346821425": 0
+          }
+        }
+      },
+      {
+        "id": "sel_1777830375090938",
+        "at": "2026-05-03T19:46:15.090938",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "turn",
+        "summary": "Next turn — round 1, active: Nerethis, The Hunger Made Gentle"
+      },
+      {
+        "id": "sel_1777830413139497",
+        "at": "2026-05-03T19:46:53.139497",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "statblockAction",
+        "actorCombatantId": "ec_statblock_1777646763901692_1777830346821425_0",
+        "actorName": "Nerethis, The Hunger Made Gentle",
+        "targetCombatantIds": [
+          "ec_statblock_1777654153364727_1777830346821425_1"
+        ],
+        "targetNames": [
+          "Cultist of Hunger 2"
+        ],
+        "summary": "Nerethis, The Hunger Made Gentle uses Demonette Claw against target: Cultist of Hunger 2 receives 25 Slashing Damage",
+        "payload": {
+          "actionName": "Demonette Claw",
+          "statblockName": "Nerethis, The Hunger Made Gentle",
+          "damageByTargetId": {
+            "ec_statblock_1777654153364727_1777830346821425_1": 25
+          }
+        }
+      },
+      {
+        "id": "sel_1777830424588878",
+        "at": "2026-05-03T19:47:04.588878",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "turn",
+        "summary": "Next turn — round 1, active: Cultist of Hunger 2"
+      },
+      {
+        "id": "sel_1777830424782835",
+        "at": "2026-05-03T19:47:04.782835",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "turn",
+        "summary": "Next turn — round 1, active: Cultist of Hunger 1"
+      },
+      {
+        "id": "sel_1777830425070081",
+        "at": "2026-05-03T19:47:05.070081",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "turn",
+        "summary": "Next turn — round 1, active: Florian"
+      },
+      {
+        "id": "sel_1777830425314341",
+        "at": "2026-05-03T19:47:05.314341",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "turn",
+        "summary": "Next turn — round 1, active: Senne"
+      },
+      {
+        "id": "sel_1777830425516437",
+        "at": "2026-05-03T19:47:05.516437",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "turn",
+        "summary": "Next turn — round 1, active: Yusha"
+      },
+      {
+        "id": "sel_1777830434342775",
+        "at": "2026-05-03T19:47:14.342775",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "hpChange",
+        "actorCombatantId": "ec_character_1777623243599950_1777830346821425",
+        "actorName": "Yusha",
+        "targetCombatantIds": [
+          "ec_statblock_1777654153364727_1777830346821425_1"
+        ],
+        "targetNames": [
+          "Cultist of Hunger 2"
+        ],
+        "summary": "Yusha: Cultist of Hunger 2: +20 HP · healing",
+        "payload": {
+          "damageType": "",
+          "requestedDelta": 20
+        }
+      },
+      {
+        "id": "sel_1777830446572132",
+        "at": "2026-05-03T19:47:26.572132",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "hpChange",
+        "actorCombatantId": "ec_character_1777623243599950_1777830346821425",
+        "actorName": "Yusha",
+        "targetCombatantIds": [
+          "ec_statblock_1777646763901692_1777830346821425_0"
+        ],
+        "targetNames": [
+          "Nerethis, The Hunger Made Gentle"
+        ],
+        "summary": "Yusha: Nerethis, The Hunger Made Gentle: -5 HP · Psychic",
+        "payload": {
+          "damageType": "Psychic",
+          "requestedDelta": -10
+        }
+      },
+      {
+        "id": "sel_1777830453494532",
+        "at": "2026-05-03T19:47:33.494532",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "conditions",
+        "targetCombatantIds": [
+          "ec_character_1777623243599950_1777830346821425"
+        ],
+        "targetNames": [
+          "Yusha"
+        ],
+        "summary": "Yusha: Removed Frightened"
+      },
+      {
+        "id": "sel_1777830461553790",
+        "at": "2026-05-03T19:47:41.553790",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "encounterEnded",
+        "summary": "Encounter 1777640099574337 ended"
+      },
+      {
+        "id": "sel_1777830671817462",
+        "at": "2026-05-03T19:51:11.817462",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "encounterStarted",
+        "summary": "Encounter 1777640099574337 started (7 combatants: Nerethis, The Hunger Made Gentle (Lair Action), Cultist of Hunger 1, Florian, Senne, Yusha, Nerethis, The Hunger Made Gentle, Cultist of Hunger 2)"
+      },
+      {
+        "id": "sel_1777830674309108",
+        "at": "2026-05-03T19:51:14.309108",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "turn",
+        "summary": "Next turn — round 1, active: Cultist of Hunger 1"
+      },
+      {
+        "id": "sel_1777969474304352",
+        "at": "2026-05-05T10:24:34.304352",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "encounterEnded",
+        "summary": "Encounter 1777640099574337 ended"
+      },
+      {
+        "id": "sel_1778147906299379",
+        "at": "2026-05-07T11:58:26.299379",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "encounterStarted",
+        "summary": "Encounter 1777640099574337 started (7 combatants: Cultist of Hunger 2, Nerethis, The Hunger Made Gentle (Lair Action), Cultist of Hunger 1, Florian, Senne, Yusha, Nerethis, The Hunger Made Gentle)"
+      },
+      {
+        "id": "sel_1778149490330021",
+        "at": "2026-05-07T12:24:50.330021",
+        "encounterId": "encounter_1777640099574337",
+        "round": 1,
+        "kind": "encounterEnded",
+        "summary": "Encounter 1777640099574337 ended"
+      }
+    ],
+    "createdAt": "2026-04-30T12:12:29.518213",
+    "updatedAt": "2026-05-08T20:24:00.892220"
+  }
+}
