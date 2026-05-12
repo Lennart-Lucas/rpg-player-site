@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-05-12T12:51:11.332301Z",
+  "exportedAt": "2026-05-12T13:07:17.640498Z",
   "home": {
     "recordType": "campaign",
     "recordId": "campaign_1777543502362419"
@@ -12,6 +12,10 @@
     {
       "recordType": "location",
       "recordId": "location_1778265699952413"
+    },
+    {
+      "recordType": "location",
+      "recordId": "location_1778263569885481"
     }
   ]
 }
