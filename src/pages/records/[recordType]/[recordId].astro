@@ -49,7 +49,6 @@ const title =
   (typeof payload.data.title === 'string' && payload.data.title) ||
   recordId!;
 ---
-<Layout title={title}>
+<Layout title={title} shell shellPath={Astro.url.pathname}>
   <article set:html={body} />
-  <p style="margin-top:2rem"><a href="/">Home</a></p>
 </Layout>
