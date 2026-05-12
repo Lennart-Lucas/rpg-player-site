@@ -5,6 +5,12 @@
       "name": "Althania",
       "locationType": "nation",
       "parentLocationId": null
+    },
+    {
+      "id": "location_1778263569885481",
+      "name": "Velmorne",
+      "locationType": "village",
+      "parentLocationId": "location_1778265699952413"
     }
   ]
 }
