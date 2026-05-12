@@ -23,7 +23,10 @@ const here = normPath(shellPath);
 const homeHref = '/';
 const locationsHref = '/world/locations';
 const homeActive = here === '/';
-const locationsActive = here === normPath(locationsHref);
+const locationsActive =
+  here === normPath(locationsHref) ||
+  here.startsWith('/records/location/') ||
+  here.startsWith('/records/location');
 ---
 <!doctype html>
 <html lang="en">
@@ -89,7 +92,9 @@ const locationsActive = here === normPath(locationsHref);
         margin-top: 0.25rem;
       }
       .shell-nav-link {
-        display: block;
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
         padding: 0.5rem 0.75rem;
         border-radius: 8px;
         color: var(--fg);
@@ -103,6 +108,15 @@ const locationsActive = here === normPath(locationsHref);
         background: var(--sidebar-active);
         color: var(--link);
         font-weight: 600;
+      }
+      .shell-nav-icon {
+        flex: 0 0 auto;
+        width: 1.125rem;
+        height: 1.125rem;
+        color: var(--muted);
+      }
+      .shell-nav-link.active .shell-nav-icon {
+        color: var(--link);
       }
       .shell-main {
         flex: 1 1 auto;
@@ -167,14 +181,42 @@ const locationsActive = here === normPath(locationsHref);
                 href={homeHref}
                 class:list={['shell-nav-link', { active: homeActive }]}
               >
-                Home
+                <svg
+                  class="shell-nav-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span>Home</span>
               </a>
               <div class="shell-nav-section-label">The World</div>
               <a
                 href={locationsHref}
                 class:list={['shell-nav-link', { active: locationsActive }]}
               >
-                Locations
+                <svg
+                  class="shell-nav-icon"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span>Locations</span>
               </a>
             </nav>
           </aside>
