@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "id": "condition_charmed",
+      "name": "Charmed",
+      "rarity": "UNCOMMON",
+      "icon": "md_psychology_rounded",
+      "color": "#ff80ab"
+    },
+    {
+      "id": "condition_1777629325948862",
+      "name": "Obsessed",
+      "rarity": "UNCOMMON",
+      "icon": "fa_solidHeart",
+      "color": "#e91e63"
+    },
+    {
+      "id": "condition_1777630830518826",
+      "name": "Rampaging",
+      "rarity": "UNCOMMON",
+      "icon": "fa_solidFaceAngry",
+      "color": "#ff3d00"
+    }
+  ]
+}

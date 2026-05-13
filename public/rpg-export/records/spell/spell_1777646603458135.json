@@ -1,0 +1,41 @@
+{
+  "recordType": "spell",
+  "recordId": "spell_1777646603458135",
+  "data": {
+    "id": "spell_1777646603458135",
+    "name": "Phantasmagoria",
+    "description": "You conjure haunting illusions, phantom creatures that swirl and whisper within a 15-foot-radius sphere centered on a point you can see within range. The illusions whisper dark promises and unsettling truths that cloud the minds of your foes. When you cast the spell, you can designate any number of creatures you can see to be unaffected by it.<br>\nAffected creatures in the area have disadvantage on Charisma, Intelligence, and Wisdom saving throws, as well as on Constitution saving throws made to maintain concentration. <br>\nThe spell ends early if you move more than 60 feet away from the point where it was cast.",
+    "forHigherLevels": "",
+    "level": "FIFTH",
+    "school": "ILLUSION",
+    "spellDuration": "ONE_MINUTE",
+    "spellRange": "SIXTY_FEET",
+    "concentration": true,
+    "castingTime": 1,
+    "castingType": "ACTION",
+    "reactionTrigger": "",
+    "components": [
+      "verbal",
+      "somatic"
+    ],
+    "materialDescription": "",
+    "tagIds": [],
+    "classIds": [
+      "class_web_bard",
+      "class_web_warlock"
+    ],
+    "sourceRefs": [
+      {
+        "fileId": "resource_file_1777628291319408",
+        "pageNumber": 20
+      }
+    ],
+    "createdAt": "2026-05-01T16:43:23.458135",
+    "updatedAt": "2026-05-13T05:41:29.093611",
+    "classNames": [
+      "Bard",
+      "Warlock"
+    ],
+    "tagNames": []
+  }
+}

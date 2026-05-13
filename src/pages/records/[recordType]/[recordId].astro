@@ -3,6 +3,39 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Layout from '../../../layouts/Layout.astro';
 import { htmlForRecord } from '../../../lib/recordRender';
+import {
+  conditionAccentHex,
+  conditionIconSvg,
+  conditionRarityLabel,
+  darkenHex,
+  readableForeground,
+} from '../../../lib/conditionVisuals';
+import {
+  itemRarityLabel,
+  itemSubtitleText,
+  itemTypeIconSvg,
+  itemTypeLabel,
+  suggestedGoldRangeForRarity,
+} from '../../../lib/itemVisuals';
+import {
+  spellCastingAndRangeText,
+  spellComponentsLine,
+  spellDurationCardDisplay,
+  spellHeaderSummary,
+  spellSchoolIconSvg,
+} from '../../../lib/spellVisuals';
+
+type LocationIndexItem = {
+  id: string;
+  name: string;
+  locationType: string;
+  parentLocationId: string | null;
+};
+
+type LocationTreeNode = {
+  item: LocationIndexItem;
+  children: LocationTreeNode[];
+};
 
 export function getStaticPaths() {
   const recordsRoot = path.join(
@@ -26,6 +59,104 @@ export function getStaticPaths() {
   return paths;
 }
 
+const locationTypeLabels: Record<string, string> = {
+  continent: 'Continent',
+  nation: 'Nation',
+  region: 'Region',
+  city: 'City',
+  village: 'Village',
+  district: 'District',
+  building: 'Building',
+  dungeon: 'Dungeon',
+  cave: 'Cave',
+  landmark: 'Landmark',
+  other: 'Other',
+};
+
+function displayLocationType(code: string): string {
+  return locationTypeLabels[code] ?? code;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function stringArray(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((v) => (typeof v === 'string' ? v.trim() : ''))
+    .filter((v) => v.length > 0);
+}
+
+function loadLocationIndex(): LocationIndexItem[] {
+  const indexPath = path.join(
+    process.cwd(),
+    'public',
+    'rpg-export',
+    'locations-index.json',
+  );
+  try {
+    const raw = fs.readFileSync(indexPath, 'utf8');
+    const parsed = JSON.parse(raw) as { items?: LocationIndexItem[] };
+    if (!Array.isArray(parsed.items)) return [];
+    return parsed.items.filter(
+      (i) =>
+        i &&
+        typeof i.id === 'string' &&
+        i.id.length > 0 &&
+        typeof i.name === 'string',
+    );
+  } catch {
+    return [];
+  }
+}
+
+function buildDescendantTree(
+  items: LocationIndexItem[],
+  rootId: string,
+): LocationTreeNode[] {
+  const ids = new Set(items.map((r) => r.id));
+  const byParent = new Map<string | null, LocationIndexItem[]>();
+  for (const row of items) {
+    const p =
+      typeof row.parentLocationId === 'string' &&
+      row.parentLocationId.trim().length > 0 &&
+      ids.has(row.parentLocationId)
+        ? row.parentLocationId
+        : null;
+    const list = byParent.get(p) ?? [];
+    list.push(row);
+    byParent.set(p, list);
+  }
+  for (const list of byParent.values()) {
+    list.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
+  function walk(parent: string): LocationTreeNode[] {
+    const list = byParent.get(parent) ?? [];
+    return list.map((item) => ({ item, children: walk(item.id) }));
+  }
+  return walk(rootId);
+}
+
+function renderLocationTree(nodes: LocationTreeNode[]): string {
+  if (nodes.length === 0) return '';
+  const lis = nodes
+    .map((n) => {
+      const href = `/records/location/${encodeURIComponent(n.item.id)}/`;
+      const typeLabel = displayLocationType(n.item.locationType);
+      const nested = renderLocationTree(n.children);
+      return `<li><a href="${escapeHtml(href)}">${escapeHtml(n.item.name)}</a> <span class="meta">(${escapeHtml(typeLabel)})</span>${nested}</li>`;
+    })
+    .join('');
+  return `<ul class="location-tree">${lis}</ul>`;
+}
+
 const { recordType, recordId } = Astro.params;
 const file = path.join(
   process.cwd(),
@@ -43,12 +174,664 @@ if (!fs.existsSync(file)) {
 const payload = JSON.parse(fs.readFileSync(file, 'utf8')) as {
   data: Record<string, unknown>;
 };
-const body = htmlForRecord(recordType!, payload.data);
+const isCondition = recordType === 'condition';
+const isItem = recordType === 'item';
+const isSpell = recordType === 'spell';
+const body =
+  isCondition || isItem || isSpell
+    ? ''
+    : htmlForRecord(recordType!, payload.data);
 const title =
   (typeof payload.data.name === 'string' && payload.data.name) ||
   (typeof payload.data.title === 'string' && payload.data.title) ||
   recordId!;
+
+let childrenHtml = '';
+if (recordType === 'location' && typeof recordId === 'string') {
+  const subtree = buildDescendantTree(loadLocationIndex(), recordId);
+  if (subtree.length > 0) {
+    childrenHtml = renderLocationTree(subtree);
+  }
+}
+
+let conditionView: {
+  accent: string;
+  darker: string;
+  fg: string;
+  rarityLabel: string;
+  iconSvg: string;
+  descriptionHtml: string;
+  displayName: string;
+} | null = null;
+if (isCondition) {
+  const data = payload.data;
+  const colorRaw = typeof data.color === 'string' ? data.color : '';
+  const iconRaw = typeof data.icon === 'string' ? data.icon : '';
+  const rarityRaw = typeof data.rarity === 'string' ? data.rarity : '';
+  const nameRaw = typeof data.name === 'string' ? data.name.trim() : '';
+  const descriptionHtml =
+    typeof data.description === 'string' ? data.description : '';
+  const accent = conditionAccentHex(colorRaw);
+  conditionView = {
+    accent,
+    darker: darkenHex(accent, 0.12),
+    fg: readableForeground(accent),
+    rarityLabel: conditionRarityLabel(rarityRaw),
+    iconSvg: conditionIconSvg(iconRaw, nameRaw),
+    descriptionHtml,
+    displayName: nameRaw.length > 0 ? nameRaw : 'Condition',
+  };
+}
+
+let itemView: {
+  displayName: string;
+  itemTypeLabel: string;
+  itemTypeIconSvg: string;
+  subtitle: string;
+  typeReferenceHtml: string;
+  rarityLabel: string;
+  goldRangeText: string;
+  descriptionHtml: string;
+} | null = null;
+if (isItem) {
+  const data = payload.data;
+  const nameRaw = typeof data.name === 'string' ? data.name.trim() : '';
+  const itemTypeRaw =
+    typeof data.itemType === 'string' ? (data.itemType as string) : '';
+  const rarityRaw = typeof data.rarity === 'string' ? (data.rarity as string) : '';
+  const descriptionHtml =
+    typeof data.description === 'string' ? (data.description as string) : '';
+  const typeReferenceHtml =
+    typeof data.typeReference === 'string'
+      ? (data.typeReference as string)
+      : '';
+  const magic = data.magic === true;
+  const consumable = data.consumable === true;
+  const requiresAttunement = magic && data.requiresAttunement === true;
+  itemView = {
+    displayName: nameRaw.length > 0 ? nameRaw : 'Item',
+    itemTypeLabel: itemTypeLabel(itemTypeRaw),
+    itemTypeIconSvg: itemTypeIconSvg(itemTypeRaw),
+    subtitle: itemSubtitleText({
+      rarity: rarityRaw,
+      magic,
+      consumable,
+      requiresAttunement,
+    }),
+    typeReferenceHtml,
+    rarityLabel: itemRarityLabel(rarityRaw),
+    goldRangeText: suggestedGoldRangeForRarity(rarityRaw),
+    descriptionHtml,
+  };
+}
+
+let spellView: {
+  displayName: string;
+  schoolIconSvg: string;
+  summary: string;
+  castingText: string;
+  durationText: string;
+  componentsText: string;
+  descriptionHtml: string;
+  higherLevelsHtml: string;
+  classNames: string[];
+} | null = null;
+if (isSpell) {
+  const data = payload.data;
+  const nameRaw = typeof data.name === 'string' ? data.name.trim() : '';
+  const levelRaw = typeof data.level === 'string' ? data.level : '';
+  const schoolRaw = typeof data.school === 'string' ? data.school : '';
+  const tagNames = stringArray(data.tagNames);
+  const classNames = stringArray(data.classNames);
+  const castingTime =
+    typeof data.castingTime === 'number' ? data.castingTime : 0;
+  const castingTypeRaw =
+    typeof data.castingType === 'string' ? data.castingType : '';
+  const reactionTriggerRaw =
+    typeof data.reactionTrigger === 'string' ? data.reactionTrigger : '';
+  const rangeRaw = typeof data.spellRange === 'string' ? data.spellRange : '';
+  const durationRaw =
+    typeof data.spellDuration === 'string' ? data.spellDuration : '';
+  const components = stringArray(data.components);
+  const materialDescription =
+    typeof data.materialDescription === 'string'
+      ? data.materialDescription
+      : '';
+  spellView = {
+    displayName: nameRaw.length > 0 ? nameRaw : 'Spell',
+    schoolIconSvg: spellSchoolIconSvg(schoolRaw),
+    summary: spellHeaderSummary({
+      level: levelRaw,
+      school: schoolRaw,
+      tagNames,
+    }),
+    castingText: spellCastingAndRangeText({
+      castingTime,
+      castingType: castingTypeRaw,
+      reactionTrigger: reactionTriggerRaw,
+      range: rangeRaw,
+    }),
+    durationText: spellDurationCardDisplay({
+      duration: durationRaw,
+      concentration: data.concentration === true,
+    }),
+    componentsText: spellComponentsLine(components, materialDescription),
+    descriptionHtml:
+      typeof data.description === 'string' ? data.description : '',
+    higherLevelsHtml:
+      typeof data.forHigherLevels === 'string' ? data.forHigherLevels : '',
+    classNames,
+  };
+}
 ---
 <Layout title={title} shell shellPath={Astro.url.pathname}>
-  <article set:html={body} />
+  {
+    conditionView ? (
+      <article
+        class="condition-card"
+        style={`--condition-accent: ${conditionView.accent};`}
+      >
+        <header
+          class="condition-header"
+          style={`background: ${conditionView.accent}; color: ${conditionView.fg};`}
+        >
+          <h1 class="condition-header-name">{conditionView.displayName}</h1>
+        </header>
+        <div
+          class="condition-subband"
+          style={`background: ${conditionView.darker}; color: ${conditionView.fg};`}
+        >
+          <span
+            class="condition-subband-icon"
+            set:html={conditionView.iconSvg}
+          />
+          <span class="condition-subband-rarity">
+            {conditionView.rarityLabel}
+          </span>
+        </div>
+        <div class="condition-body">
+          <div
+            class="condition-watermark"
+            set:html={conditionView.iconSvg}
+            aria-hidden="true"
+          />
+          <div
+            class="condition-description prose"
+            set:html={conditionView.descriptionHtml}
+          />
+        </div>
+      </article>
+    ) : itemView ? (
+      <article class="item-card-detail">
+        <header class="item-detail-header">
+          <h1 class="item-detail-name">{itemView.displayName}</h1>
+        </header>
+        <div class="item-detail-subband">
+          <span
+            class="item-detail-subband-icon"
+            set:html={itemView.itemTypeIconSvg}
+          />
+          <span class="item-detail-subband-text">
+            <span class="item-detail-subband-type">
+              {itemView.itemTypeLabel}
+            </span>
+            {itemView.typeReferenceHtml && (
+              <span
+                class="item-detail-subband-ref"
+                set:html={itemView.typeReferenceHtml}
+              />
+            )}
+            <span class="item-detail-subband-summary">{itemView.subtitle}</span>
+          </span>
+        </div>
+        <div class="item-detail-body">
+          <div
+            class="item-detail-watermark"
+            set:html={itemView.itemTypeIconSvg}
+            aria-hidden="true"
+          />
+          <div
+            class="item-detail-description prose"
+            set:html={itemView.descriptionHtml}
+          />
+        </div>
+        <footer class="item-detail-footer">
+          <span class="item-detail-footer-coin" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v10" />
+              <path d="M9 9h6" />
+              <path d="M9 15h6" />
+            </svg>
+          </span>
+          <span class="item-detail-footer-text">
+            {itemView.rarityLabel}
+            {itemView.goldRangeText &&
+              ` \u00b7 ${itemView.goldRangeText}`}
+          </span>
+        </footer>
+      </article>
+    ) : spellView ? (
+      <article class="spell-card">
+        <header class="spell-header">
+          <h1 class="spell-header-name">{spellView.displayName}</h1>
+        </header>
+        <div class="spell-subband">
+          <span
+            class="spell-subband-icon"
+            set:html={spellView.schoolIconSvg}
+          />
+          <span class="spell-subband-summary">{spellView.summary}</span>
+        </div>
+        <div class="spell-mechanics">
+          <div class="spell-mechanics-row">
+            <span class="spell-mechanics-label">Casting</span>
+            <span class="spell-mechanics-value">{spellView.castingText}</span>
+          </div>
+          <div class="spell-mechanics-row">
+            <span class="spell-mechanics-label">Duration</span>
+            <span class="spell-mechanics-value">{spellView.durationText}</span>
+          </div>
+          <div class="spell-mechanics-row">
+            <span class="spell-mechanics-label">Components</span>
+            <span class="spell-mechanics-value">
+              {spellView.componentsText}
+            </span>
+          </div>
+        </div>
+        <div class="spell-body">
+          <div
+            class="spell-watermark"
+            set:html={spellView.schoolIconSvg}
+            aria-hidden="true"
+          />
+          <div
+            class="spell-description prose"
+            set:html={spellView.descriptionHtml}
+          />
+          {spellView.higherLevelsHtml && (
+            <p class="spell-higher-levels prose">
+              <strong>At Higher Levels:</strong>{' '}
+              <span set:html={spellView.higherLevelsHtml} />
+            </p>
+          )}
+        </div>
+        {spellView.classNames.length > 0 && (
+          <footer class="spell-footer">
+            <span class="spell-footer-icon" aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 3 4.5 8.5V20a1 1 0 0 0 1 1H10v-6h4v6h4.5a1 1 0 0 0 1-1V8.5Z" />
+                <path d="M9 14h6" />
+              </svg>
+            </span>
+            <span class="spell-footer-text">
+              {spellView.classNames.join(', ')}
+            </span>
+          </footer>
+        )}
+      </article>
+    ) : (
+      <article set:html={body} />
+    )
+  }
+  {
+    childrenHtml && (
+      <section class="block">
+        <h2>Child locations</h2>
+        <div class="prose" set:html={childrenHtml} />
+      </section>
+    )
+  }
 </Layout>
+
+<style is:global>
+  .location-tree {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin: 0.5rem 0 0;
+  }
+  .location-tree .location-tree {
+    margin-top: 0.35rem;
+  }
+
+  .condition-card {
+    max-width: 720px;
+    margin: 0 auto;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+  }
+  .condition-header {
+    padding: 8px 12px 5px;
+  }
+  .condition-header-name {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: inherit;
+  }
+  .condition-subband {
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .condition-subband-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .condition-subband-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .condition-subband-rarity {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: inherit;
+  }
+  .condition-body {
+    position: relative;
+    padding: 18px 20px;
+    background: var(--sidebar-bg);
+    min-height: 180px;
+  }
+  .condition-watermark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.12;
+    color: var(--condition-accent, var(--link));
+    pointer-events: none;
+  }
+  .condition-watermark svg {
+    width: 60%;
+    height: 60%;
+    max-width: 320px;
+    max-height: 320px;
+  }
+  .condition-description {
+    position: relative;
+    z-index: 1;
+  }
+  .condition-description :first-child {
+    margin-top: 0;
+  }
+  .condition-description :last-child {
+    margin-bottom: 0;
+  }
+
+  .item-card-detail {
+    max-width: 720px;
+    margin: 0 auto;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .item-detail-header {
+    padding: 8px 12px 5px;
+    background: color-mix(in srgb, var(--link) 22%, transparent);
+    color: var(--fg);
+  }
+  .item-detail-name {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .item-detail-subband {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    background: color-mix(in srgb, var(--link) 14%, #000 30%);
+    color: var(--fg);
+  }
+  .item-detail-subband-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--link);
+  }
+  .item-detail-subband-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .item-detail-subband-text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+    min-width: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .item-detail-subband-type {
+    color: var(--fg);
+  }
+  .item-detail-subband-ref {
+    color: var(--muted);
+  }
+  .item-detail-subband-ref a {
+    color: var(--link);
+  }
+  .item-detail-subband-summary {
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .item-detail-body {
+    position: relative;
+    padding: 18px 20px;
+    background: var(--sidebar-bg);
+    min-height: 200px;
+  }
+  .item-detail-watermark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.1;
+    color: var(--link);
+    pointer-events: none;
+  }
+  .item-detail-watermark svg {
+    width: 58%;
+    height: 58%;
+    max-width: 320px;
+    max-height: 320px;
+  }
+  .item-detail-description {
+    position: relative;
+    z-index: 1;
+  }
+  .item-detail-description :first-child {
+    margin-top: 0;
+  }
+  .item-detail-description :last-child {
+    margin-bottom: 0;
+  }
+  .item-detail-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 8px;
+    background: color-mix(in srgb, var(--link) 14%, #000 30%);
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .item-detail-footer-coin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--link);
+  }
+  .item-detail-footer-coin svg {
+    width: 18px;
+    height: 18px;
+  }
+  .item-detail-footer-text {
+    font-size: 0.9rem;
+  }
+
+  .spell-card {
+    max-width: 720px;
+    margin: 0 auto;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .spell-header {
+    padding: 8px 12px 5px;
+    background: color-mix(in srgb, var(--link) 22%, transparent);
+    color: var(--fg);
+  }
+  .spell-header-name {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .spell-subband {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    background: color-mix(in srgb, var(--link) 14%, #000 30%);
+    color: var(--fg);
+  }
+  .spell-subband-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--link);
+  }
+  .spell-subband-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .spell-subband-summary {
+    min-width: 0;
+    color: var(--fg);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .spell-mechanics {
+    background: color-mix(in srgb, var(--sidebar-bg) 78%, #000 22%);
+    border-bottom: 1px solid var(--border);
+  }
+  .spell-mechanics-row {
+    display: grid;
+    grid-template-columns: minmax(92px, 0.28fr) 1fr;
+  }
+  .spell-mechanics-row + .spell-mechanics-row {
+    border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .spell-mechanics-label,
+  .spell-mechanics-value {
+    padding: 7px 12px;
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+  .spell-mechanics-label {
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .spell-mechanics-value {
+    color: var(--fg);
+    background: color-mix(in srgb, var(--sidebar-bg) 88%, #fff 4%);
+  }
+  .spell-body {
+    position: relative;
+    padding: 18px 20px;
+    background: var(--sidebar-bg);
+    min-height: 220px;
+  }
+  .spell-watermark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.09;
+    color: var(--link);
+    pointer-events: none;
+  }
+  .spell-watermark svg {
+    width: 58%;
+    height: 58%;
+    max-width: 320px;
+    max-height: 320px;
+  }
+  .spell-description,
+  .spell-higher-levels {
+    position: relative;
+    z-index: 1;
+  }
+  .spell-description :first-child {
+    margin-top: 0;
+  }
+  .spell-description :last-child,
+  .spell-higher-levels:last-child {
+    margin-bottom: 0;
+  }
+  .spell-higher-levels {
+    margin-top: 1rem;
+  }
+  .spell-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 8px;
+    background: color-mix(in srgb, var(--link) 14%, #000 30%);
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .spell-footer-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--link);
+  }
+  .spell-footer-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .spell-footer-text {
+    font-size: 0.9rem;
+  }
+</style>

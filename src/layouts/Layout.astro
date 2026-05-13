@@ -21,12 +21,155 @@ function normPath(p: string): string {
 }
 const here = normPath(shellPath);
 const homeHref = '/';
+const creaturesHref = '/world/creatures';
+const charactersHref = '/world/characters';
 const locationsHref = '/world/locations';
+const organisationsHref = '/world/organisations';
+const campaignsHref = '/story/campaigns';
+const classesHref = '/player/classes';
+const racesHref = '/player/races';
+const spellsHref = '/player/spells';
+const itemsHref = '/player/items';
+const itemPropertiesHref = '/mechanics/item-properties';
+const conditionsHref = '/mechanics/conditions';
 const homeActive = here === '/';
-const locationsActive =
-  here === normPath(locationsHref) ||
-  here.startsWith('/records/location/') ||
-  here.startsWith('/records/location');
+
+function activeFor(href: string, recordTypes: string[] = []): boolean {
+  if (here === normPath(href)) return true;
+  return recordTypes.some(
+    (type) => here === `/records/${type}` || here.startsWith(`/records/${type}/`),
+  );
+}
+
+type NavLink = {
+  href: string;
+  label: string;
+  active: boolean;
+  icon: string;
+};
+
+type NavSection = {
+  label: string;
+  links: NavLink[];
+};
+
+const svgOpen =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+const svgClose = '</svg>';
+const icon = (paths: string) => `${svgOpen}${paths}${svgClose}`;
+
+const homeIcon = icon(
+  '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />',
+);
+
+const navSections: NavSection[] = [
+  {
+    label: 'The World',
+    links: [
+      {
+        href: creaturesHref,
+        label: 'Creatures',
+        active: activeFor(creaturesHref, ['creature_type']),
+        icon: icon(
+          '<path d="M10 5.172A2 2 0 0 1 11.414 4h1.172A2 2 0 0 1 14 5.172l.414.828H17a2 2 0 0 1 2 2v2.586A2 2 0 0 1 18.414 12L17 13.414V16a4 4 0 0 1-8 0v-2.586L7.586 12A2 2 0 0 1 7 10.586V8a2 2 0 0 1 2-2h.586z" /><path d="M9 9h.01" /><path d="M15 9h.01" /><path d="M10 2v2" /><path d="M14 2v2" />',
+        ),
+      },
+      {
+        href: charactersHref,
+        label: 'Characters',
+        active: activeFor(charactersHref, ['character']),
+        icon: icon(
+          '<path d="M20 21a8 8 0 0 0-16 0" /><circle cx="12" cy="7" r="4" />',
+        ),
+      },
+      {
+        href: locationsHref,
+        label: 'Locations',
+        active: activeFor(locationsHref, ['location']),
+        icon: icon(
+          '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />',
+        ),
+      },
+      {
+        href: organisationsHref,
+        label: 'Organisations',
+        active: activeFor(organisationsHref, ['organisation']),
+        icon: icon(
+          '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />',
+        ),
+      },
+    ],
+  },
+  {
+    label: 'Story',
+    links: [
+      {
+        href: campaignsHref,
+        label: 'Campaigns',
+        active: activeFor(campaignsHref, ['campaign']),
+        icon: icon('<path d="M4 22V4a2 2 0 0 1 2-2h11l-2 5 2 5H6" />'),
+      },
+    ],
+  },
+  {
+    label: 'Player',
+    links: [
+      {
+        href: classesHref,
+        label: 'Classes',
+        active: activeFor(classesHref, ['class']),
+        icon: icon(
+          '<path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />',
+        ),
+      },
+      {
+        href: racesHref,
+        label: 'Races',
+        active: activeFor(racesHref, ['race']),
+        icon: icon(
+          '<path d="M18 21a8 8 0 0 0-12 0" /><circle cx="12" cy="11" r="4" /><path d="M5 8a3 3 0 1 1 4-4" /><path d="M15 4a3 3 0 1 1 4 4" />',
+        ),
+      },
+      {
+        href: spellsHref,
+        label: 'Spells',
+        active: activeFor(spellsHref, ['spell']),
+        icon: icon(
+          '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" />',
+        ),
+      },
+      {
+        href: itemsHref,
+        label: 'Items',
+        active: activeFor(itemsHref, ['item']),
+        icon: icon(
+          '<path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" /><path d="M8 10h8" /><path d="M8 18h8" /><path d="M8 22v-6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6" /><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />',
+        ),
+      },
+    ],
+  },
+  {
+    label: 'Mechanics',
+    links: [
+      {
+        href: itemPropertiesHref,
+        label: 'Item properties',
+        active: activeFor(itemPropertiesHref, ['item_property']),
+        icon: icon(
+          '<path d="M4 21v-7" /><path d="M4 10V3" /><path d="M12 21v-9" /><path d="M12 8V3" /><path d="M20 21v-5" /><path d="M20 12V3" /><path d="M2 14h4" /><path d="M10 8h4" /><path d="M18 16h4" />',
+        ),
+      },
+      {
+        href: conditionsHref,
+        label: 'Conditions',
+        active: activeFor(conditionsHref, ['condition']),
+        icon: icon(
+          '<path d="M12 21s-8-4.5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.5-8 11-8 11Z" /><path d="M12 7v6" /><path d="M9 10h6" />',
+        ),
+      },
+    ],
+  },
+];
 ---
 <!doctype html>
 <html lang="en">
@@ -115,6 +258,11 @@ const locationsActive =
         height: 1.125rem;
         color: var(--muted);
       }
+      .shell-nav-icon svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
       .shell-nav-link.active .shell-nav-icon {
         color: var(--link);
       }
@@ -181,43 +329,25 @@ const locationsActive =
                 href={homeHref}
                 class:list={['shell-nav-link', { active: homeActive }]}
               >
-                <svg
-                  class="shell-nav-icon"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                  <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
+                <span class="shell-nav-icon" set:html={homeIcon} />
                 <span>Home</span>
               </a>
-              <div class="shell-nav-section-label">The World</div>
-              <a
-                href={locationsHref}
-                class:list={['shell-nav-link', { active: locationsActive }]}
-              >
-                <svg
-                  class="shell-nav-icon"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span>Locations</span>
-              </a>
+              {
+                navSections.map((section) => (
+                  <>
+                    <div class="shell-nav-section-label">{section.label}</div>
+                    {section.links.map((link) => (
+                      <a
+                        href={link.href}
+                        class:list={['shell-nav-link', { active: link.active }]}
+                      >
+                        <span class="shell-nav-icon" set:html={link.icon} />
+                        <span>{link.label}</span>
+                      </a>
+                    ))}
+                  </>
+                ))
+              }
             </nav>
           </aside>
           <main class="shell-main shell-main-wide">

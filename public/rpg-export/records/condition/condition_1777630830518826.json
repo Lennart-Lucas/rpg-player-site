@@ -1,0 +1,14 @@
+{
+  "recordType": "condition",
+  "recordId": "condition_1777630830518826",
+  "data": {
+    "id": "condition_1777630830518826",
+    "name": "Rampaging",
+    "icon": "fa_solidFaceAngry",
+    "color": "#ff3d00",
+    "rarity": "UNCOMMON",
+    "description": "The creature loses its free will as it enters a mindless Rampage. Rampages last for up to one minute and have the following effect on a creature unless an ability states otherwise:<br>\n* Any <a href=\"/records/condition/condition_charmed\">Charmed</a> or <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Frightened</span> effects on the creature are suspended.<br>\n* The creature can't cast spells or maintain Concentrationon spells or other effects.<br>\n* On each of its turns, the creature must take the Attack action against the nearest hostile creature it can see within range. After attacking, it can't move for the rest of its turn.<br>\n* If no targets are within range, it must move toward the nearest hostile creature it is aware of by the safest route. If it comes within range during this movement, it immediately takes the Attack action against it and then can’t move further.<br>\n* If the target is still not within range after moving, it must take the Dash action to continue approaching the nearest hostile creature.<br>\n* If the creature is prevented from moving within attack range, it does whatever action is necessary to move within range (such as using an action escape a net or break through a barrier).<br>\n* The creature can only use its Reaction and Bonus Action to make attacks against hostile creatures or to move closer to the nearest hostile creature.",
+    "createdAt": "2026-05-01T12:20:30.518826",
+    "updatedAt": "2026-05-12T18:05:24.688243"
+  }
+}

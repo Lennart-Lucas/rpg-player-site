@@ -1,0 +1,14 @@
+{
+  "recordType": "condition",
+  "recordId": "condition_charmed",
+  "data": {
+    "id": "condition_charmed",
+    "name": "Charmed",
+    "icon": "md_psychology_rounded",
+    "color": "#ff80ab",
+    "rarity": "UNCOMMON",
+    "description": "While you have the Charmed condition, you experience the following effects:<br>\n* You can't harm your charmer.<br>\n* The charmer has Advantage on any ability check to interact with you socially.",
+    "createdAt": "2026-04-29T18:43:16.241292",
+    "updatedAt": "2026-05-12T20:01:06.535620"
+  }
+}

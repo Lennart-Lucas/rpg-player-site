@@ -1,0 +1,528 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import Layout from '../../../layouts/Layout.astro';
+import {
+  conditionAccentHex,
+  conditionDescriptionPreview,
+  conditionIconSvg,
+  conditionRarityLabel,
+  darkenHex,
+  readableForeground,
+} from '../../../lib/conditionVisuals';
+
+type ConditionIndexItem = {
+  id: string;
+  name: string;
+  rarity: string;
+  icon: string;
+  color: string;
+};
+
+type ConditionRow = ConditionIndexItem & {
+  accent: string;
+  darker: string;
+  descriptionPreview: string;
+  foreground: string;
+  iconSvg: string;
+  rarityLabel: string;
+  searchText: string;
+};
+
+const rpgExportDir = path.join(process.cwd(), 'public', 'rpg-export');
+const indexPath = path.join(rpgExportDir, 'conditions-index.json');
+const recordsDir = path.join(rpgExportDir, 'records', 'condition');
+
+function isValidIndexItem(item: unknown): item is ConditionIndexItem {
+  if (!item || typeof item !== 'object') return false;
+  const obj = item as Record<string, unknown>;
+  return typeof obj.id === 'string' && obj.id.length > 0;
+}
+
+function loadIndexItems(): ConditionIndexItem[] {
+  try {
+    const raw = fs.readFileSync(indexPath, 'utf8');
+    const parsed = JSON.parse(raw) as { items?: unknown[] };
+    if (!Array.isArray(parsed.items)) return [];
+    return parsed.items.filter(isValidIndexItem).map((i) => ({
+      id: i.id,
+      name: typeof i.name === 'string' ? i.name : i.id,
+      rarity: typeof i.rarity === 'string' ? i.rarity : 'COMMON',
+      icon: typeof i.icon === 'string' ? i.icon : '',
+      color: typeof i.color === 'string' ? i.color : '',
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function loadRecordData(id: string): Record<string, unknown> | null {
+  const file = path.join(recordsDir, `${id}.json`);
+  try {
+    const raw = fs.readFileSync(file, 'utf8');
+    const parsed = JSON.parse(raw) as { data?: Record<string, unknown> };
+    return parsed.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function scanRecordsDir(): ConditionIndexItem[] {
+  if (!fs.existsSync(recordsDir)) return [];
+  const out: ConditionIndexItem[] = [];
+  for (const file of fs.readdirSync(recordsDir)) {
+    if (!file.endsWith('.json')) continue;
+    const id = file.replace(/\.json$/, '');
+    const data = loadRecordData(id);
+    if (!data) continue;
+    out.push({
+      id,
+      name:
+        (typeof data.name === 'string' && data.name) ||
+        (typeof data.id === 'string' ? (data.id as string) : id),
+      rarity: typeof data.rarity === 'string' ? (data.rarity as string) : 'COMMON',
+      icon: typeof data.icon === 'string' ? (data.icon as string) : '',
+      color: typeof data.color === 'string' ? (data.color as string) : '',
+    });
+  }
+  out.sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+  );
+  return out;
+}
+
+const indexItems = loadIndexItems();
+const baseItems = indexItems.length > 0 ? indexItems : scanRecordsDir();
+
+const rows: ConditionRow[] = baseItems.map((item) => {
+  const data = loadRecordData(item.id);
+  const descriptionHtml =
+    data && typeof data.description === 'string'
+      ? (data.description as string)
+      : '';
+  const accent = conditionAccentHex(item.color);
+  const descriptionPreview = conditionDescriptionPreview(
+    descriptionHtml,
+    600,
+  );
+  const rarityLabel = conditionRarityLabel(item.rarity);
+  return {
+    ...item,
+    accent,
+    darker: darkenHex(accent, 0.38),
+    descriptionPreview,
+    foreground: readableForeground(accent),
+    iconSvg: conditionIconSvg(item.icon, item.name),
+    rarityLabel,
+    searchText: [item.name, rarityLabel, descriptionPreview]
+      .filter((s) => s.length > 0)
+      .join(' ')
+      .toLowerCase(),
+  };
+});
+
+function alphabeticalHeader(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return '#';
+  const first = trimmed.charAt(0).toUpperCase();
+  return /^[A-Z]$/.test(first) ? first : '#';
+}
+
+type ConditionGroup = { header: string; rows: ConditionRow[] };
+const groups: ConditionGroup[] = [];
+const groupsByHeader = new Map<string, ConditionGroup>();
+for (const row of rows) {
+  const header = alphabeticalHeader(row.name);
+  let group = groupsByHeader.get(header);
+  if (!group) {
+    group = { header, rows: [] };
+    groupsByHeader.set(header, group);
+    groups.push(group);
+  }
+  group.rows.push(row);
+}
+
+const RARITY_CODES = ['COMMON', 'UNCOMMON', 'RARE'] as const;
+const rarityOptions = RARITY_CODES.filter((code) =>
+  rows.some((row) => row.rarity.toUpperCase() === code),
+).map((code) => ({ value: code, label: conditionRarityLabel(code) }));
+---
+<Layout title="Conditions" shell shellPath={Astro.url.pathname}>
+  <h1 class="record-title">Conditions</h1>
+  {
+    rows.length === 0 ? (
+      <p class="meta">
+        No published conditions yet… Players only see conditions you publish
+        from RPG Manager.
+      </p>
+    ) : (
+      <div class="condition-page" data-condition-page>
+        <section class="condition-filters" aria-label="Condition filters">
+          <div class="condition-filters-header">
+            <label class="condition-filter-search-label">
+              <span class="condition-filter-label-text">Search</span>
+              <input
+                type="search"
+                class="condition-filter-search"
+                data-condition-filter-search
+                placeholder="Search by name, rarity, or description"
+                autocomplete="off"
+              />
+            </label>
+            <div class="condition-filter-summary">
+              <span
+                class="condition-filter-count"
+                data-condition-filter-count
+              >
+                {rows.length === 1
+                  ? '1 condition'
+                  : `${rows.length} conditions`}
+              </span>
+              <button
+                type="button"
+                class="condition-filter-clear"
+                data-condition-filter-clear
+                disabled
+              >
+                Clear filters
+              </button>
+            </div>
+          </div>
+          {rarityOptions.length > 0 && (
+            <div class="condition-filter-group">
+              <span class="condition-filter-label-text">Rarity</span>
+              <div
+                class="condition-filter-chips"
+                role="group"
+                aria-label="Rarity"
+              >
+                {rarityOptions.map((opt) => (
+                  <button
+                    type="button"
+                    class="condition-filter-chip"
+                    data-filter-group="rarity"
+                    data-filter-value={opt.value}
+                    aria-pressed="false"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+        <p class="condition-filter-empty is-hidden" data-condition-empty>
+          No conditions match these filters.
+        </p>
+        {groups.map((group) => (
+          <section
+            class="block condition-section"
+            data-condition-section={group.header}
+          >
+            <h2>{group.header}</h2>
+            <div class="condition-grid">
+              {group.rows.map((row) => {
+                const heading =
+                  row.name.trim().length === 0 ? 'Condition' : row.name;
+                return (
+                  <a
+                    class="condition-card"
+                    data-condition-card
+                    data-section={group.header}
+                    data-name={row.name}
+                    data-rarity={row.rarity.toUpperCase()}
+                    data-search={row.searchText}
+                    href={`/records/condition/${encodeURIComponent(row.id)}/`}
+                    style={`--condition-accent: ${row.accent}; --condition-darker: ${row.darker}; --condition-fg: ${row.foreground};`}
+                  >
+                    <span class="condition-card-header">
+                      <span class="condition-card-name">{heading}</span>
+                    </span>
+                    <span class="condition-card-subband">
+                      <span
+                        class="condition-card-subband-icon"
+                        set:html={row.iconSvg}
+                      />
+                      <span class="condition-card-rarity">
+                        {row.rarityLabel}
+                      </span>
+                    </span>
+                    <span class="condition-card-body">
+                      <span
+                        class="condition-card-watermark"
+                        set:html={row.iconSvg}
+                        aria-hidden="true"
+                      />
+                      {row.descriptionPreview && (
+                        <span class="condition-card-preview">
+                          {row.descriptionPreview}
+                        </span>
+                      )}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    )
+  }
+</Layout>
+
+<script>
+  import { initConditionFilters } from '../../../lib/conditionFilters';
+
+  function boot(): void {
+    const root = document.querySelector<HTMLElement>('[data-condition-page]');
+    initConditionFilters(root);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+</script>
+
+<style is:global>
+  .condition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+    margin: 0.5rem 0 0;
+  }
+  .condition-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 260px;
+    border-radius: 14px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    text-decoration: none;
+    overflow: hidden;
+    box-shadow: 0 10px 24px color-mix(in srgb, #000 28%, transparent);
+    transition: border-color 120ms ease, transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+  .condition-card:hover {
+    border-color: var(--condition-accent, var(--link));
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px color-mix(in srgb, #000 36%, transparent);
+  }
+  .condition-card-header {
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 3px 12px;
+    background: var(--condition-accent, var(--link));
+    color: var(--condition-fg, var(--fg));
+  }
+  .condition-card-name {
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    line-height: 1.15;
+    text-transform: uppercase;
+    color: inherit;
+  }
+  .condition-card-subband {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 22px;
+    padding: 2px 12px;
+    background: var(--condition-darker, var(--link));
+    color: var(--condition-fg, var(--fg));
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .condition-card-subband-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: inherit;
+  }
+  .condition-card-subband-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+  .condition-card-rarity {
+    min-width: 0;
+    font-size: 0.74rem;
+    font-weight: 750;
+    letter-spacing: 0.035em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: inherit;
+  }
+  .condition-card-body {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 12px;
+    background: color-mix(in srgb, var(--sidebar-bg) 86%, #000 14%);
+    overflow: hidden;
+  }
+  .condition-card-watermark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--condition-accent, var(--link));
+    opacity: 0.1;
+    pointer-events: none;
+  }
+  .condition-card-watermark svg {
+    width: 62%;
+    height: 62%;
+    max-width: 220px;
+    max-height: 220px;
+  }
+  .condition-card-preview {
+    position: relative;
+    z-index: 1;
+    color: var(--fg);
+    display: -webkit-box;
+    font-size: 0.84rem;
+    line-height: 1.38;
+    opacity: 0.9;
+    white-space: pre-line;
+    -webkit-line-clamp: 9;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .condition-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .condition-filters-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .condition-filter-search-label {
+    flex: 1 1 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 220px;
+  }
+  .condition-filter-label-text {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .condition-filter-search {
+    appearance: none;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+    color: var(--fg);
+    font: inherit;
+  }
+  .condition-filter-search:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 1px;
+  }
+  .condition-filter-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+  .condition-filter-count {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .condition-filter-clear {
+    appearance: none;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    cursor: pointer;
+  }
+  .condition-filter-clear:hover:not(:disabled) {
+    border-color: var(--link);
+    color: var(--link);
+  }
+  .condition-filter-clear:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .condition-filter-group {
+    display: grid;
+    grid-template-columns: minmax(96px, 0.2fr) 1fr;
+    gap: 8px 14px;
+    align-items: start;
+  }
+  .condition-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .condition-filter-chip {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    color: var(--fg);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    cursor: pointer;
+    transition: border-color 120ms ease, background 120ms ease,
+      color 120ms ease;
+    font: inherit;
+  }
+  .condition-filter-chip:hover {
+    border-color: var(--link);
+  }
+  .condition-filter-chip[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--link) 28%, transparent);
+    border-color: var(--link);
+    color: var(--fg);
+  }
+  .condition-filter-empty {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .condition-card.is-hidden,
+  .condition-section.is-hidden,
+  .condition-filter-empty.is-hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 720px) {
+    .condition-filter-group {
+      grid-template-columns: 1fr;
+    }
+    .condition-filter-summary {
+      width: 100%;
+      margin-left: 0;
+      justify-content: space-between;
+    }
+  }
+</style>

@@ -1,0 +1,23 @@
+{
+  "recordType": "item",
+  "recordId": "item_1777634427968982",
+  "data": {
+    "id": "item_1777634427968982",
+    "rarity": "rare",
+    "itemType": "wondrous_item",
+    "name": "Beguiling Gem",
+    "description": "This entrancing gemstone can be incorporated into any piece of jewelry and glows with a pinkish hue that beguiles anyone who comes near it. <br>\n<br>\nWhile you are wearing this gem, any non-<span class=\"unpublished-ref\" title=\"This note is not on the player site\">Fiend</span> creature of your choice that ends its turn within 10 feet of you must succeed on a DC 14 Wisdom saving throw or become <a href=\"/records/condition/condition_1777629325948862\">Obsessed</a> with you until the start of its next turn. If the creature succeeds, it is immune to this item's effects for 1 hour.",
+    "magic": true,
+    "consumable": false,
+    "requiresAttunement": true,
+    "typeReference": "",
+    "sourceRefs": [
+      {
+        "fileId": "resource_file_1777628291319408",
+        "pageNumber": 22
+      }
+    ],
+    "createdAt": "2026-05-01T13:20:27.968982",
+    "updatedAt": "2026-05-13T06:01:35.513183"
+  }
+}

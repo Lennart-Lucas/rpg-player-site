@@ -1,0 +1,44 @@
+{
+  "recordType": "spell",
+  "recordId": "spell_1777645767691488",
+  "data": {
+    "id": "spell_1777645767691488",
+    "name": "Slashing Shards",
+    "description": "You conjure a cloud of razor-sharp glass and launch it at acreature within range. Make a ranged spell attack against the target. On a hit, the target takes 6d6 <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Slashing</span> damage and must make a Wisdom saving throw. On a failed save, the target takes an additional 6d6 <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Psychic</span> damage, or half as much on a successful one. If the attack misses, the shards still graze the target, which takes half the <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Slashing</span> damage and suffers no additional effects.",
+    "forHigherLevels": "Both the <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Slashing</span> and <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Psychic</span> damage increase by 1d6 for each slot level above 4th.",
+    "level": "FOURTH",
+    "school": "CONJURATION",
+    "spellDuration": "INSTANTANEOUS",
+    "spellRange": "NINETY_FEET",
+    "concentration": false,
+    "castingTime": 1,
+    "castingType": "ACTION",
+    "reactionTrigger": "",
+    "components": [
+      "verbal",
+      "somatic",
+      "material"
+    ],
+    "materialDescription": "a piece of broken glass)",
+    "tagIds": [],
+    "classIds": [
+      "class_web_sorcerer",
+      "class_web_warlock",
+      "class_web_wizard"
+    ],
+    "sourceRefs": [
+      {
+        "fileId": "resource_file_1777628291319408",
+        "pageNumber": 21
+      }
+    ],
+    "createdAt": "2026-05-01T16:29:27.691488",
+    "updatedAt": "2026-05-13T05:41:39.502945",
+    "classNames": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "tagNames": []
+  }
+}

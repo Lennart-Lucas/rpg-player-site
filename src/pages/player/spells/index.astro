@@ -1,0 +1,908 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import Layout from '../../../layouts/Layout.astro';
+import {
+  spellCastingAndRangeText,
+  spellCastingTypeLabel,
+  spellComponentsLine,
+  spellDescriptionPreview,
+  spellDurationCardDisplay,
+  spellHeaderSummary,
+  spellLevelGroupLabel,
+  spellLevelLabel,
+  spellLevelOrder,
+  spellSchoolIconSvg,
+  spellSchoolLabel,
+} from '../../../lib/spellVisuals';
+import { slugifyName } from '../../../lib/spellFilters';
+
+type SpellIndexRow = {
+  id: string;
+  name: string;
+  level: string;
+  school: string;
+  concentration: boolean;
+  castingType: string;
+  tagNames: string[];
+  classNames: string[];
+};
+
+type SpellRow = SpellIndexRow & {
+  descriptionPreview: string;
+  castingAndRangeText: string;
+  durationText: string;
+  componentsText: string;
+  classLine: string;
+  searchText: string;
+  tagSlugs: string[];
+  classSlugs: string[];
+};
+
+const rpgExportDir = path.join(process.cwd(), 'public', 'rpg-export');
+const indexPath = path.join(rpgExportDir, 'spells-index.json');
+const recordsDir = path.join(rpgExportDir, 'records', 'spell');
+
+function stringArray(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((v) => (typeof v === 'string' ? v.trim() : ''))
+    .filter((v) => v.length > 0);
+}
+
+function toIndexRow(raw: Record<string, unknown>, id: string): SpellIndexRow {
+  const levelRaw = typeof raw.level === 'string' ? raw.level : '';
+  const schoolRaw = typeof raw.school === 'string' ? raw.school : '';
+  const castingTypeRaw =
+    typeof raw.castingType === 'string' ? raw.castingType : '';
+  return {
+    id,
+    name: typeof raw.name === 'string' ? raw.name : id,
+    level: levelRaw.trim().toUpperCase() || 'CANTRIP',
+    school: schoolRaw.trim().toUpperCase() || 'ABJURATION',
+    concentration: raw.concentration === true,
+    castingType: castingTypeRaw.trim().toUpperCase() || 'ACTION',
+    tagNames: stringArray(raw.tagNames),
+    classNames: stringArray(raw.classNames),
+  };
+}
+
+function loadIndexItems(): SpellIndexRow[] {
+  try {
+    const raw = fs.readFileSync(indexPath, 'utf8');
+    const parsed = JSON.parse(raw) as { items?: unknown[] };
+    if (!Array.isArray(parsed.items)) return [];
+    const out: SpellIndexRow[] = [];
+    for (const entry of parsed.items) {
+      if (!entry || typeof entry !== 'object') continue;
+      const obj = entry as Record<string, unknown>;
+      const id = typeof obj.id === 'string' ? obj.id : '';
+      if (!id) continue;
+      out.push(toIndexRow(obj, id));
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+function loadRecordData(id: string): Record<string, unknown> | null {
+  const file = path.join(recordsDir, `${id}.json`);
+  try {
+    const raw = fs.readFileSync(file, 'utf8');
+    const parsed = JSON.parse(raw) as { data?: Record<string, unknown> };
+    return parsed.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function scanRecordsDir(): SpellIndexRow[] {
+  if (!fs.existsSync(recordsDir)) return [];
+  const out: SpellIndexRow[] = [];
+  for (const file of fs.readdirSync(recordsDir)) {
+    if (!file.endsWith('.json')) continue;
+    const id = file.replace(/\.json$/, '');
+    const data = loadRecordData(id);
+    if (!data) continue;
+    out.push(toIndexRow(data, id));
+  }
+  out.sort((a, b) => {
+    const la = spellLevelOrder(a.level);
+    const lb = spellLevelOrder(b.level);
+    if (la !== lb) return la - lb;
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+  });
+  return out;
+}
+
+const baseItems = loadIndexItems();
+const indexItems = baseItems.length > 0 ? baseItems : scanRecordsDir();
+
+const rows: SpellRow[] = indexItems.map((spell) => {
+  const data = loadRecordData(spell.id);
+  const descriptionHtml =
+    data && typeof data.description === 'string' ? data.description : '';
+  const castingTime =
+    data && typeof data.castingTime === 'number' ? data.castingTime : 0;
+  const reactionTrigger =
+    data && typeof data.reactionTrigger === 'string'
+      ? data.reactionTrigger
+      : '';
+  const range = data && typeof data.spellRange === 'string' ? data.spellRange : '';
+  const duration =
+    data && typeof data.spellDuration === 'string' ? data.spellDuration : '';
+  const components = data ? stringArray(data.components) : [];
+  const materialDescription =
+    data && typeof data.materialDescription === 'string'
+      ? data.materialDescription
+      : '';
+  const descriptionPreview = spellDescriptionPreview(descriptionHtml);
+  const castingAndRangeText = spellCastingAndRangeText({
+    castingTime,
+    castingType: spell.castingType,
+    reactionTrigger,
+    range,
+  });
+  const durationText = spellDurationCardDisplay({
+    duration,
+    concentration: spell.concentration,
+  });
+  const componentsText = spellComponentsLine(components, materialDescription);
+  const classLine = spell.classNames.join(', ');
+  const tagSlugs = spell.tagNames.map(slugifyName).filter((s) => s.length > 0);
+  const classSlugs = spell.classNames
+    .map(slugifyName)
+    .filter((s) => s.length > 0);
+  const searchParts = [
+    spell.name,
+    spellLevelLabel(spell.level),
+    spellSchoolLabel(spell.school),
+    spellCastingTypeLabel(spell.castingType),
+    ...spell.tagNames,
+    ...spell.classNames,
+    castingAndRangeText,
+    durationText,
+    componentsText,
+    descriptionPreview,
+  ];
+  return {
+    ...spell,
+    descriptionPreview,
+    castingAndRangeText,
+    durationText,
+    componentsText,
+    classLine,
+    searchText: searchParts
+      .filter((s) => typeof s === 'string' && s.length > 0)
+      .join(' ')
+      .toLowerCase(),
+    tagSlugs,
+    classSlugs,
+  };
+});
+
+type SpellGroup = { levelCode: string; label: string; rows: SpellRow[] };
+const groupsMap = new Map<string, SpellGroup>();
+for (const row of rows) {
+  const key = row.level;
+  let group = groupsMap.get(key);
+  if (!group) {
+    group = {
+      levelCode: key,
+      label: spellLevelGroupLabel(key),
+      rows: [],
+    };
+    groupsMap.set(key, group);
+  }
+  group.rows.push(row);
+}
+const groups = [...groupsMap.values()].sort(
+  (a, b) => spellLevelOrder(a.levelCode) - spellLevelOrder(b.levelCode),
+);
+
+const SPELL_LEVEL_CODES = [
+  'CANTRIP',
+  'FIRST',
+  'SECOND',
+  'THIRD',
+  'FOURTH',
+  'FIFTH',
+  'SIXTH',
+  'SEVENTH',
+  'EIGHTH',
+  'NINTH',
+] as const;
+const SPELL_SCHOOL_CODES = [
+  'ABJURATION',
+  'CONJURATION',
+  'DIVINATION',
+  'ENCHANTMENT',
+  'EVOCATION',
+  'ILLUSION',
+  'NECROMANCY',
+  'TRANSMUTATION',
+] as const;
+const SPELL_CASTING_TYPE_CODES = [
+  'ACTION',
+  'BONUS_ACTION',
+  'REACTION',
+  'MINUTES',
+  'HOURS',
+] as const;
+
+type ChipOption = { value: string; label: string };
+
+const levelOptions: ChipOption[] = SPELL_LEVEL_CODES.filter((code) =>
+  rows.some((row) => row.level === code),
+).map((code) => ({ value: code, label: spellLevelLabel(code) }));
+
+const schoolOptions: ChipOption[] = SPELL_SCHOOL_CODES.filter((code) =>
+  rows.some((row) => row.school === code),
+).map((code) => ({ value: code, label: spellSchoolLabel(code) }));
+
+const castingTypeOptions: ChipOption[] = SPELL_CASTING_TYPE_CODES.filter(
+  (code) => rows.some((row) => row.castingType === code),
+).map((code) => ({ value: code, label: spellCastingTypeLabel(code) }));
+
+function uniqueSortedOptions(values: string[]): ChipOption[] {
+  const map = new Map<string, string>();
+  for (const v of values) {
+    const slug = slugifyName(v);
+    if (slug.length === 0) continue;
+    if (!map.has(slug)) map.set(slug, v);
+  }
+  return [...map.entries()]
+    .map(([value, label]) => ({ value, label }))
+    .sort((a, b) =>
+      a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }),
+    );
+}
+
+const tagOptions = uniqueSortedOptions(rows.flatMap((row) => row.tagNames));
+const classOptions = uniqueSortedOptions(
+  rows.flatMap((row) => row.classNames),
+);
+
+const hasFilters = rows.length > 0;
+---
+<Layout title="Spells" shell shellPath={Astro.url.pathname}>
+  <h1 class="record-title">Spells</h1>
+  {
+    rows.length === 0 ? (
+      <p class="meta">
+        No published spells yet… Players only see spells you publish from RPG
+        Manager.
+      </p>
+    ) : (
+      <div class="spell-page" data-spell-page>
+        {hasFilters && (
+          <section class="spell-filters" aria-label="Spell filters">
+            <div class="spell-filters-header">
+              <label class="spell-filter-search-label">
+                <span class="spell-filter-label-text">Search</span>
+                <input
+                  type="search"
+                  class="spell-filter-search"
+                  data-spell-filter-search
+                  placeholder="Search by name, tag, class, or description"
+                  autocomplete="off"
+                />
+              </label>
+              <div class="spell-filter-summary">
+                <span class="spell-filter-count" data-spell-filter-count>
+                  {rows.length === 1 ? '1 spell' : `${rows.length} spells`}
+                </span>
+                <button
+                  type="button"
+                  class="spell-filter-clear"
+                  data-spell-filter-clear
+                  disabled
+                >
+                  Clear filters
+                </button>
+              </div>
+            </div>
+            {levelOptions.length > 0 && (
+              <div class="spell-filter-group">
+                <span class="spell-filter-label-text">Level</span>
+                <div class="spell-filter-chips" role="group" aria-label="Level">
+                  {levelOptions.map((opt) => (
+                    <button
+                      type="button"
+                      class="spell-filter-chip"
+                      data-filter-group="level"
+                      data-filter-value={opt.value}
+                      aria-pressed="false"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {schoolOptions.length > 0 && (
+              <div class="spell-filter-group">
+                <span class="spell-filter-label-text">School</span>
+                <div
+                  class="spell-filter-chips"
+                  role="group"
+                  aria-label="School"
+                >
+                  {schoolOptions.map((opt) => (
+                    <button
+                      type="button"
+                      class="spell-filter-chip"
+                      data-filter-group="school"
+                      data-filter-value={opt.value}
+                      aria-pressed="false"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {castingTypeOptions.length > 0 && (
+              <div class="spell-filter-group">
+                <span class="spell-filter-label-text">Casting</span>
+                <div
+                  class="spell-filter-chips"
+                  role="group"
+                  aria-label="Casting type"
+                >
+                  {castingTypeOptions.map((opt) => (
+                    <button
+                      type="button"
+                      class="spell-filter-chip"
+                      data-filter-group="casting"
+                      data-filter-value={opt.value}
+                      aria-pressed="false"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div class="spell-filter-group">
+              <span class="spell-filter-label-text">Concentration</span>
+              <div
+                class="spell-filter-chips"
+                role="radiogroup"
+                aria-label="Concentration"
+              >
+                <button
+                  type="button"
+                  class="spell-filter-chip"
+                  data-filter-group="concentration"
+                  data-filter-value="any"
+                  aria-pressed="true"
+                >
+                  Any
+                </button>
+                <button
+                  type="button"
+                  class="spell-filter-chip"
+                  data-filter-group="concentration"
+                  data-filter-value="with"
+                  aria-pressed="false"
+                >
+                  Concentration
+                </button>
+                <button
+                  type="button"
+                  class="spell-filter-chip"
+                  data-filter-group="concentration"
+                  data-filter-value="without"
+                  aria-pressed="false"
+                >
+                  No concentration
+                </button>
+              </div>
+            </div>
+            {tagOptions.length > 0 && (
+              <div
+                class="spell-filter-group"
+                data-filter-collapsible="tag"
+              >
+                <span class="spell-filter-label-text">Tags</span>
+                <div class="spell-filter-chips" role="group" aria-label="Tags">
+                  {tagOptions.map((opt) => (
+                    <button
+                      type="button"
+                      class="spell-filter-chip"
+                      data-filter-group="tag"
+                      data-filter-value={opt.value}
+                      aria-pressed="false"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    class="spell-filter-collapse-toggle is-hidden"
+                    data-filter-collapse-toggle
+                  />
+                </div>
+              </div>
+            )}
+            {classOptions.length > 0 && (
+              <div
+                class="spell-filter-group"
+                data-filter-collapsible="class"
+              >
+                <span class="spell-filter-label-text">Classes</span>
+                <div
+                  class="spell-filter-chips"
+                  role="group"
+                  aria-label="Classes"
+                >
+                  {classOptions.map((opt) => (
+                    <button
+                      type="button"
+                      class="spell-filter-chip"
+                      data-filter-group="class"
+                      data-filter-value={opt.value}
+                      aria-pressed="false"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    class="spell-filter-collapse-toggle is-hidden"
+                    data-filter-collapse-toggle
+                  />
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+        <p class="spell-filter-empty is-hidden" data-spell-empty>
+          No spells match these filters.
+        </p>
+        {groups.map((group) => (
+          <section
+            class="block spell-section"
+            data-spell-section={group.levelCode}
+          >
+            <h2>{group.label}</h2>
+            <div class="spell-grid">
+              {group.rows.map((row) => {
+                const heading =
+                  row.name.trim().length === 0 ? 'Spell' : row.name;
+                const schoolIconSvg = spellSchoolIconSvg(row.school);
+                const subtitle = spellHeaderSummary(row);
+                const castingTypeLabel = spellCastingTypeLabel(row.castingType);
+                return (
+                  <a
+                    class="spell-card-link"
+                    data-spell-card
+                    data-section={group.levelCode}
+                    data-name={row.name}
+                    data-level={row.level}
+                    data-school={row.school}
+                    data-casting-type={row.castingType}
+                    data-concentration={row.concentration ? 'true' : 'false'}
+                    data-tag-slugs={row.tagSlugs.join('|')}
+                    data-class-slugs={row.classSlugs.join('|')}
+                    data-search={row.searchText}
+                    href={`/records/spell/${encodeURIComponent(row.id)}/`}
+                  >
+                    <span class="spell-card-header">
+                      <span class="spell-card-name">{heading}</span>
+                    </span>
+                    <span class="spell-card-subband">
+                      <span
+                        class="spell-card-subband-icon"
+                        set:html={schoolIconSvg}
+                      />
+                      <span class="spell-card-subtitle">{subtitle}</span>
+                    </span>
+                    <span class="spell-card-body">
+                      <span
+                        class="spell-card-watermark"
+                        set:html={schoolIconSvg}
+                        aria-hidden="true"
+                      />
+                      <span class="spell-card-mechanics">
+                        <span class="spell-card-mechanics-row">
+                          <span class="spell-card-mechanics-label">Casting</span>
+                          <span class="spell-card-mechanics-value">
+                            {row.castingAndRangeText}
+                          </span>
+                        </span>
+                        <span class="spell-card-mechanics-row">
+                          <span class="spell-card-mechanics-label">Duration</span>
+                          <span class="spell-card-mechanics-value">
+                            {row.durationText}
+                          </span>
+                        </span>
+                        <span class="spell-card-mechanics-row">
+                          <span class="spell-card-mechanics-label">
+                            Components
+                          </span>
+                          <span class="spell-card-mechanics-value">
+                            {row.componentsText}
+                          </span>
+                        </span>
+                      </span>
+                      <span class="spell-card-chip-row">
+                        {row.concentration && (
+                          <span class="spell-card-chip">Concentration</span>
+                        )}
+                        {castingTypeLabel && (
+                          <span class="spell-card-chip">{castingTypeLabel}</span>
+                        )}
+                      </span>
+                      {row.descriptionPreview && (
+                        <span class="spell-card-preview">
+                          {row.descriptionPreview}
+                        </span>
+                      )}
+                    </span>
+                    {row.classLine && (
+                      <span class="spell-card-footer">
+                        <span
+                          class="spell-card-footer-icon"
+                          aria-hidden="true"
+                          set:html={schoolIconSvg}
+                        />
+                        <span class="spell-card-footer-text">
+                          {row.classLine}
+                        </span>
+                      </span>
+                    )}
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    )
+  }
+</Layout>
+
+<script>
+  import { initSpellFilters } from '../../../lib/spellFilters';
+
+  function boot(): void {
+    const root = document.querySelector<HTMLElement>('[data-spell-page]');
+    initSpellFilters(root);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+</script>
+
+<style is:global>
+  .spell-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
+    margin: 0.5rem 0 0;
+  }
+  .spell-card-link {
+    display: flex;
+    flex-direction: column;
+    min-height: 360px;
+    border-radius: 14px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    text-decoration: none;
+    overflow: hidden;
+    box-shadow: 0 10px 24px color-mix(in srgb, #000 28%, transparent);
+    transition: border-color 120ms ease, transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+  .spell-card-link:hover {
+    border-color: var(--link);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px color-mix(in srgb, #000 36%, transparent);
+  }
+  .spell-card-header {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 8px 12px 6px;
+    background: color-mix(in srgb, var(--link) 22%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--link) 24%, transparent);
+  }
+  .spell-card-name {
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    line-height: 1.15;
+    text-transform: uppercase;
+    color: var(--fg);
+  }
+  .spell-card-subband {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 5px 12px;
+    background: color-mix(in srgb, var(--link) 14%, #000 30%);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .spell-card-subband-icon,
+  .spell-card-footer-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: var(--link);
+  }
+  .spell-card-subband-icon svg,
+  .spell-card-footer-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+  .spell-card-subtitle {
+    min-width: 0;
+    font-size: 0.82rem;
+    font-weight: 650;
+    color: var(--fg);
+    line-height: 1.25;
+  }
+  .spell-card-body {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    background: color-mix(in srgb, var(--sidebar-bg) 86%, #000 14%);
+    overflow: hidden;
+  }
+  .spell-card-watermark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--link);
+    opacity: 0.075;
+    pointer-events: none;
+  }
+  .spell-card-watermark svg {
+    width: 58%;
+    height: 58%;
+    max-width: 220px;
+    max-height: 220px;
+  }
+  .spell-card-mechanics,
+  .spell-card-chip-row,
+  .spell-card-preview {
+    position: relative;
+    z-index: 1;
+  }
+  .spell-card-mechanics {
+    border-radius: 9px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+  }
+  .spell-card-mechanics-row {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+  }
+  .spell-card-mechanics-row + .spell-card-mechanics-row {
+    border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .spell-card-mechanics-label,
+  .spell-card-mechanics-value {
+    padding: 6px 8px;
+    font-size: 0.76rem;
+    line-height: 1.25;
+  }
+  .spell-card-mechanics-label {
+    color: var(--muted);
+    font-weight: 800;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--sidebar-bg) 56%, #fff 6%);
+    border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .spell-card-mechanics-value {
+    color: var(--fg);
+    background: color-mix(in srgb, var(--sidebar-bg) 82%, #fff 3%);
+  }
+  .spell-card-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .spell-card-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: var(--fg);
+    background: color-mix(in srgb, var(--sidebar-bg) 58%, #000 42%);
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .spell-card-preview {
+    color: var(--fg);
+    display: -webkit-box;
+    font-size: 0.84rem;
+    line-height: 1.42;
+    opacity: 0.9;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .spell-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 6px 12px 8px;
+    background: color-mix(in srgb, var(--link) 14%, #000 30%);
+    border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    color: var(--fg);
+  }
+  .spell-card-footer-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.82rem;
+    font-weight: 650;
+  }
+
+  .spell-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .spell-filters-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .spell-filter-search-label {
+    flex: 1 1 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 220px;
+  }
+  .spell-filter-label-text {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .spell-filter-search {
+    appearance: none;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+    color: var(--fg);
+    font: inherit;
+  }
+  .spell-filter-search:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 1px;
+  }
+  .spell-filter-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+  .spell-filter-count {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .spell-filter-clear {
+    appearance: none;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    cursor: pointer;
+  }
+  .spell-filter-clear:hover:not(:disabled) {
+    border-color: var(--link);
+    color: var(--link);
+  }
+  .spell-filter-clear:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .spell-filter-group {
+    display: grid;
+    grid-template-columns: minmax(96px, 0.2fr) 1fr;
+    gap: 8px 14px;
+    align-items: start;
+  }
+  .spell-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .spell-filter-chip {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    color: var(--fg);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    cursor: pointer;
+    transition: border-color 120ms ease, background 120ms ease,
+      color 120ms ease;
+    font: inherit;
+  }
+  .spell-filter-chip:hover {
+    border-color: var(--link);
+  }
+  .spell-filter-chip[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--link) 28%, transparent);
+    border-color: var(--link);
+    color: var(--fg);
+  }
+  .spell-filter-collapse-toggle {
+    appearance: none;
+    min-height: 28px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    background: transparent;
+    border: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+  }
+  .spell-filter-collapse-toggle:hover {
+    color: var(--link);
+    border-color: var(--link);
+  }
+  .spell-filter-empty {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .spell-card-link.is-hidden,
+  .spell-section.is-hidden,
+  .spell-filter-empty.is-hidden,
+  .spell-filter-chip.is-hidden,
+  .spell-filter-collapse-toggle.is-hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 720px) {
+    .spell-filter-group {
+      grid-template-columns: 1fr;
+    }
+    .spell-filter-summary {
+      width: 100%;
+      margin-left: 0;
+      justify-content: space-between;
+    }
+  }
+</style>

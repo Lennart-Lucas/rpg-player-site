@@ -1,6 +1,532 @@
 ---
+import fs from 'node:fs';
+import path from 'node:path';
 import Layout from '../layouts/Layout.astro';
+import { conditionRarityLabel } from '../lib/conditionVisuals';
+import { itemRarityLabel, itemTypeLabel } from '../lib/itemVisuals';
+import {
+  spellLevelLabel,
+  spellLevelOrder,
+  spellSchoolLabel,
+} from '../lib/spellVisuals';
+
+type RecordType = 'spell' | 'item' | 'condition' | 'location';
+
+type SearchEntry = {
+  id: string;
+  name: string;
+  href: string;
+  subtitle: string;
+  searchText: string;
+};
+
+const rpgExportDir = path.join(process.cwd(), 'public', 'rpg-export');
+
+const locationTypeLabels: Record<string, string> = {
+  continent: 'Continent',
+  nation: 'Nation',
+  region: 'Region',
+  city: 'City',
+  village: 'Village',
+  district: 'District',
+  building: 'Building',
+  dungeon: 'Dungeon',
+  cave: 'Cave',
+  landmark: 'Landmark',
+  other: 'Other',
+};
+
+function readJson(file: string): Record<string, unknown> | null {
+  try {
+    const raw = fs.readFileSync(file, 'utf8');
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function indexItems(file: string): Record<string, unknown>[] {
+  const data = readJson(file);
+  if (!data || !Array.isArray(data.items)) return [];
+  return (data.items as unknown[]).filter(
+    (entry): entry is Record<string, unknown> =>
+      !!entry && typeof entry === 'object',
+  );
+}
+
+function toSlug(v: unknown, fallback: string): string {
+  return typeof v === 'string' && v.trim().length > 0 ? v.trim() : fallback;
+}
+
+function buildSpellEntries(): SearchEntry[] {
+  const items = indexItems(path.join(rpgExportDir, 'spells-index.json'));
+  return items
+    .map((row) => {
+      const id = toSlug(row.id, '');
+      if (!id) return null;
+      const name = toSlug(row.name, id);
+      const level = toSlug(row.level, '');
+      const school = toSlug(row.school, '');
+      const tagNames = Array.isArray(row.tagNames)
+        ? (row.tagNames as unknown[])
+            .map((t) => (typeof t === 'string' ? t : ''))
+            .filter((t) => t.length > 0)
+        : [];
+      const classNames = Array.isArray(row.classNames)
+        ? (row.classNames as unknown[])
+            .map((c) => (typeof c === 'string' ? c : ''))
+            .filter((c) => c.length > 0)
+        : [];
+      const levelLbl = spellLevelLabel(level);
+      const schoolLbl = spellSchoolLabel(school);
+      const subtitleParts = [levelLbl, schoolLbl].filter(
+        (s) => s.length > 0,
+      );
+      const searchText = [
+        name,
+        levelLbl,
+        schoolLbl,
+        ...tagNames,
+        ...classNames,
+      ]
+        .filter((s) => s.length > 0)
+        .join(' ')
+        .toLowerCase();
+      return {
+        id,
+        name,
+        href: `/records/spell/${encodeURIComponent(id)}/`,
+        subtitle: subtitleParts.join(' \u00b7 '),
+        searchText,
+        _order: spellLevelOrder(level),
+        _name: name.toLowerCase(),
+      } as SearchEntry & { _order: number; _name: string };
+    })
+    .filter((e): e is SearchEntry & { _order: number; _name: string } =>
+      e !== null,
+    )
+    .sort((a, b) =>
+      a._order !== b._order
+        ? a._order - b._order
+        : a._name.localeCompare(b._name),
+    )
+    .map(({ _order, _name, ...rest }) => rest);
+}
+
+function buildItemEntries(): SearchEntry[] {
+  const items = indexItems(path.join(rpgExportDir, 'items-index.json'));
+  return items
+    .map((row) => {
+      const id = toSlug(row.id, '');
+      if (!id) return null;
+      const name = toSlug(row.name, id);
+      const itemType = toSlug(row.itemType, '');
+      const rarity = toSlug(row.rarity, '');
+      const typeLbl = itemTypeLabel(itemType);
+      const rarityLbl = itemRarityLabel(rarity);
+      const subtitleParts = [typeLbl, rarityLbl].filter((s) => s.length > 0);
+      const searchText = [
+        name,
+        typeLbl,
+        rarityLbl,
+        row.magic === true ? 'magic' : '',
+        row.consumable === true ? 'consumable' : '',
+        row.requiresAttunement === true ? 'attunement' : '',
+      ]
+        .filter((s) => s.length > 0)
+        .join(' ')
+        .toLowerCase();
+      return {
+        id,
+        name,
+        href: `/records/item/${encodeURIComponent(id)}/`,
+        subtitle: subtitleParts.join(' \u00b7 '),
+        searchText,
+      };
+    })
+    .filter((e): e is SearchEntry => e !== null)
+    .sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+}
+
+function buildConditionEntries(): SearchEntry[] {
+  const items = indexItems(path.join(rpgExportDir, 'conditions-index.json'));
+  return items
+    .map((row) => {
+      const id = toSlug(row.id, '');
+      if (!id) return null;
+      const name = toSlug(row.name, id);
+      const rarity = toSlug(row.rarity, '');
+      const rarityLbl = conditionRarityLabel(rarity);
+      const searchText = [name, rarityLbl]
+        .filter((s) => s.length > 0)
+        .join(' ')
+        .toLowerCase();
+      return {
+        id,
+        name,
+        href: `/records/condition/${encodeURIComponent(id)}/`,
+        subtitle: rarityLbl,
+        searchText,
+      };
+    })
+    .filter((e): e is SearchEntry => e !== null)
+    .sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+}
+
+function buildLocationEntries(): SearchEntry[] {
+  const items = indexItems(path.join(rpgExportDir, 'locations-index.json'));
+  return items
+    .map((row) => {
+      const id = toSlug(row.id, '');
+      if (!id) return null;
+      const name = toSlug(row.name, id);
+      const locationType = toSlug(row.locationType, '');
+      const typeLbl =
+        locationTypeLabels[locationType] ?? locationType ?? '';
+      const searchText = [name, typeLbl]
+        .filter((s) => s.length > 0)
+        .join(' ')
+        .toLowerCase();
+      return {
+        id,
+        name,
+        href: `/records/location/${encodeURIComponent(id)}/`,
+        subtitle: typeLbl,
+        searchText,
+      };
+    })
+    .filter((e): e is SearchEntry => e !== null)
+    .sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+}
+
+const svgOpen =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+const svgClose = '</svg>';
+const wrapIcon = (paths: string) => `${svgOpen}${paths}${svgClose}`;
+
+const spellIcon = wrapIcon(
+  '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" />',
+);
+const itemIcon = wrapIcon(
+  '<path d="M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" /><path d="M8 10h8" /><path d="M8 18h8" />',
+);
+const conditionIcon = wrapIcon(
+  '<path d="M12 21s-8-4.5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6.5-8 11-8 11Z" /><path d="M12 7v6" /><path d="M9 10h6" />',
+);
+const locationIcon = wrapIcon(
+  '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />',
+);
+
+type Group = {
+  type: RecordType;
+  label: string;
+  href: string;
+  icon: string;
+  entries: SearchEntry[];
+};
+
+const groups: Group[] = [
+  {
+    type: 'spell',
+    label: 'Spells',
+    href: '/player/spells',
+    icon: spellIcon,
+    entries: buildSpellEntries(),
+  },
+  {
+    type: 'item',
+    label: 'Items',
+    href: '/player/items',
+    icon: itemIcon,
+    entries: buildItemEntries(),
+  },
+  {
+    type: 'condition',
+    label: 'Conditions',
+    href: '/mechanics/conditions',
+    icon: conditionIcon,
+    entries: buildConditionEntries(),
+  },
+  {
+    type: 'location',
+    label: 'Locations',
+    href: '/world/locations',
+    icon: locationIcon,
+    entries: buildLocationEntries(),
+  },
+];
+
+const visibleGroups = groups.filter((g) => g.entries.length > 0);
+const totalCount = visibleGroups.reduce(
+  (sum, g) => sum + g.entries.length,
+  0,
+);
 ---
 <Layout title="Home" shell shellPath={Astro.url.pathname}>
-  <h1 class="record-title">Home</h1>
+  <h1 class="record-title">Player site</h1>
+  <p class="meta">
+    Search across every published record, or browse a section from the
+    sidebar.
+  </p>
+
+  {
+    visibleGroups.length === 0 ? (
+      <p class="meta">
+        Nothing has been published yet… Records become searchable here as
+        soon as they are published from RPG Manager.
+      </p>
+    ) : (
+      <div class="home-search-page" data-home-search-root>
+        <label class="home-search-field">
+          <span class="home-search-label">Search</span>
+          <input
+            type="search"
+            class="home-search-input"
+            data-home-search
+            placeholder="Search spells, items, conditions, locations\u2026"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </label>
+        <div class="home-search-status">
+          <span class="home-search-summary" data-home-summary>
+            {totalCount === 1
+              ? '1 published record indexed'
+              : `${totalCount} published records indexed`}
+          </span>
+          <span
+            class="home-search-match-count is-hidden"
+            data-home-match-count
+          />
+        </div>
+        <p class="home-search-empty is-hidden" data-home-empty>
+          No records match.
+        </p>
+        <div class="home-search-results">
+          {visibleGroups.map((group) => (
+            <section
+              class="home-search-group is-hidden"
+              data-result-group={group.type}
+            >
+              <a class="home-search-group-header" href={group.href}>
+                <span
+                  class="home-search-group-icon"
+                  set:html={group.icon}
+                />
+                <span class="home-search-group-label">{group.label}</span>
+                <span
+                  class="home-search-group-count"
+                  data-result-count
+                />
+              </a>
+              <div class="home-search-group-entries">
+                {group.entries.map((entry) => (
+                  <a
+                    class="home-search-entry is-hidden"
+                    data-search-entry
+                    data-type={group.type}
+                    data-search={entry.searchText}
+                    href={entry.href}
+                  >
+                    <span class="home-search-entry-name">{entry.name}</span>
+                    {entry.subtitle && (
+                      <span class="home-search-entry-subtitle">
+                        {entry.subtitle}
+                      </span>
+                    )}
+                  </a>
+                ))}
+                <a
+                  class="home-search-more is-hidden"
+                  data-result-more
+                  href={group.href}
+                >
+                  See all <span data-result-more-count>0</span> more in{' '}
+                  {group.label}
+                </a>
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+    )
+  }
 </Layout>
+
+<script>
+  import { initHomeSearch } from '../lib/homeSearch';
+
+  function boot(): void {
+    const root = document.querySelector<HTMLElement>(
+      '[data-home-search-root]',
+    );
+    initHomeSearch(root);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+</script>
+
+<style is:global>
+  .home-search-page {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .home-search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .home-search-label {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .home-search-input {
+    appearance: none;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+    color: var(--fg);
+    font: inherit;
+    font-size: 1rem;
+  }
+  .home-search-input:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 1px;
+  }
+  .home-search-status {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .home-search-match-count {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .home-search-empty {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .home-search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .home-search-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+  }
+  .home-search-group-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 4px 8px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    text-decoration: none;
+    color: var(--fg);
+  }
+  .home-search-group-header:hover {
+    color: var(--link);
+  }
+  .home-search-group-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    color: var(--link);
+  }
+  .home-search-group-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+  .home-search-group-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .home-search-group-count {
+    margin-left: auto;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--sidebar-bg) 60%, #000 40%);
+    padding: 2px 8px;
+    border-radius: 999px;
+    min-width: 24px;
+    text-align: center;
+  }
+  .home-search-group-entries {
+    display: flex;
+    flex-direction: column;
+  }
+  .home-search-entry {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 7px 6px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--fg);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+  }
+  .home-search-entry:last-of-type {
+    border-bottom: none;
+  }
+  .home-search-entry:hover {
+    background: color-mix(in srgb, var(--link) 12%, transparent);
+  }
+  .home-search-entry-name {
+    font-weight: 600;
+  }
+  .home-search-entry-subtitle {
+    margin-left: auto;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .home-search-more {
+    align-self: flex-start;
+    margin-top: 4px;
+    padding: 4px 6px;
+    font-size: 0.85rem;
+    color: var(--link);
+    text-decoration: none;
+  }
+  .home-search-more:hover {
+    text-decoration: underline;
+  }
+  .home-search-group.is-hidden,
+  .home-search-entry.is-hidden,
+  .home-search-more.is-hidden,
+  .home-search-empty.is-hidden,
+  .home-search-summary.is-hidden,
+  .home-search-match-count.is-hidden {
+    display: none !important;
+  }
+</style>

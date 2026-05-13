@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "id": "item_1777634427968982",
+      "name": "Beguiling Gem",
+      "itemType": "wondrous_item",
+      "rarity": "rare",
+      "magic": true,
+      "consumable": false,
+      "requiresAttunement": true
+    }
+  ]
+}

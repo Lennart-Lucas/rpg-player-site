@@ -1,0 +1,45 @@
+{
+  "items": [
+    {
+      "id": "spell_1777645767691488",
+      "name": "Slashing Shards",
+      "level": "FOURTH",
+      "school": "CONJURATION",
+      "concentration": false,
+      "castingType": "ACTION",
+      "tagNames": [],
+      "classNames": [
+        "Sorcerer",
+        "Warlock",
+        "Wizard"
+      ]
+    },
+    {
+      "id": "spell_1777646483229635",
+      "name": "Hysterical Frenzy",
+      "level": "FIFTH",
+      "school": "ENCHANTMENT",
+      "concentration": true,
+      "castingType": "ACTION",
+      "tagNames": [],
+      "classNames": [
+        "Bard",
+        "Sorcerer",
+        "Wizard"
+      ]
+    },
+    {
+      "id": "spell_1777646603458135",
+      "name": "Phantasmagoria",
+      "level": "FIFTH",
+      "school": "ILLUSION",
+      "concentration": true,
+      "castingType": "ACTION",
+      "tagNames": [],
+      "classNames": [
+        "Bard",
+        "Warlock"
+      ]
+    }
+  ]
+}

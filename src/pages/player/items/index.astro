@@ -1,0 +1,778 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import Layout from '../../../layouts/Layout.astro';
+import {
+  itemDescriptionPreview,
+  itemDetailsColumnText,
+  itemRarityLabel,
+  itemSubtitleText,
+  itemTypeGroupLabel,
+  itemTypeIconSvg,
+  itemTypeLabel,
+  itemTypeOrder,
+  stripItemHtml,
+  suggestedGoldRangeForRarity,
+} from '../../../lib/itemVisuals';
+
+type ItemIndexRow = {
+  id: string;
+  name: string;
+  itemType: string;
+  rarity: string;
+  magic: boolean;
+  consumable: boolean;
+  requiresAttunement: boolean;
+};
+
+type ItemRow = ItemIndexRow & {
+  typeReference: string;
+  descriptionPreview: string;
+  detailsText: string;
+  subtitle: string;
+  goldRangeText: string;
+  searchText: string;
+};
+
+const rpgExportDir = path.join(process.cwd(), 'public', 'rpg-export');
+const indexPath = path.join(rpgExportDir, 'items-index.json');
+const recordsDir = path.join(rpgExportDir, 'records', 'item');
+
+function toIndexRow(raw: Record<string, unknown>, id: string): ItemIndexRow {
+  const itemTypeRaw =
+    typeof raw.itemType === 'string' ? (raw.itemType as string) : '';
+  const rarityRaw =
+    typeof raw.rarity === 'string' ? (raw.rarity as string) : '';
+  return {
+    id,
+    name: typeof raw.name === 'string' ? (raw.name as string) : id,
+    itemType: itemTypeRaw.trim().toLowerCase() || 'equipment',
+    rarity: rarityRaw.trim().toLowerCase() || 'common',
+    magic: raw.magic === true,
+    consumable: raw.consumable === true,
+    requiresAttunement:
+      raw.magic === true && raw.requiresAttunement === true,
+  };
+}
+
+function loadIndexItems(): ItemIndexRow[] {
+  try {
+    const raw = fs.readFileSync(indexPath, 'utf8');
+    const parsed = JSON.parse(raw) as { items?: unknown[] };
+    if (!Array.isArray(parsed.items)) return [];
+    const out: ItemIndexRow[] = [];
+    for (const entry of parsed.items) {
+      if (!entry || typeof entry !== 'object') continue;
+      const obj = entry as Record<string, unknown>;
+      const id = typeof obj.id === 'string' ? obj.id : '';
+      if (!id) continue;
+      out.push(toIndexRow(obj, id));
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+function loadRecordData(id: string): Record<string, unknown> | null {
+  const file = path.join(recordsDir, `${id}.json`);
+  try {
+    const raw = fs.readFileSync(file, 'utf8');
+    const parsed = JSON.parse(raw) as { data?: Record<string, unknown> };
+    return parsed.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function scanRecordsDir(): ItemIndexRow[] {
+  if (!fs.existsSync(recordsDir)) return [];
+  const out: ItemIndexRow[] = [];
+  for (const file of fs.readdirSync(recordsDir)) {
+    if (!file.endsWith('.json')) continue;
+    const id = file.replace(/\.json$/, '');
+    const data = loadRecordData(id);
+    if (!data) continue;
+    out.push(toIndexRow(data, id));
+  }
+  out.sort((a, b) => {
+    const ta = itemTypeOrder(a.itemType);
+    const tb = itemTypeOrder(b.itemType);
+    if (ta !== tb) return ta - tb;
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+  });
+  return out;
+}
+
+const baseItems = loadIndexItems();
+const indexItems = baseItems.length > 0 ? baseItems : scanRecordsDir();
+
+const rows: ItemRow[] = indexItems.map((item) => {
+  const data = loadRecordData(item.id);
+  const descriptionHtml =
+    data && typeof data.description === 'string'
+      ? (data.description as string)
+      : '';
+  const typeReference =
+    data && typeof data.typeReference === 'string'
+      ? (data.typeReference as string)
+      : '';
+  const descriptionPreview = itemDescriptionPreview(descriptionHtml);
+  const detailsText = itemDetailsColumnText({
+    typeReference,
+    magic: item.magic,
+    consumable: item.consumable,
+    requiresAttunement: item.requiresAttunement,
+  });
+  const subtitle = itemSubtitleText(item);
+  const goldRangeText = suggestedGoldRangeForRarity(item.rarity);
+  const searchParts = [
+    item.name,
+    itemTypeLabel(item.itemType),
+    itemRarityLabel(item.rarity),
+    stripItemHtml(typeReference),
+    descriptionPreview,
+    item.magic ? 'magic' : '',
+    item.requiresAttunement ? 'attunement' : '',
+    item.consumable ? 'consumable' : '',
+  ];
+  return {
+    ...item,
+    typeReference,
+    descriptionPreview,
+    detailsText,
+    subtitle,
+    goldRangeText,
+    searchText: searchParts
+      .filter((s) => typeof s === 'string' && s.length > 0)
+      .join(' ')
+      .toLowerCase(),
+  };
+});
+
+type ItemGroup = { typeCode: string; label: string; rows: ItemRow[] };
+const groupsMap = new Map<string, ItemGroup>();
+for (const row of rows) {
+  const key = row.itemType;
+  let group = groupsMap.get(key);
+  if (!group) {
+    group = {
+      typeCode: key,
+      label: itemTypeGroupLabel(key),
+      rows: [],
+    };
+    groupsMap.set(key, group);
+  }
+  group.rows.push(row);
+}
+const groups = [...groupsMap.values()].sort(
+  (a, b) => itemTypeOrder(a.typeCode) - itemTypeOrder(b.typeCode),
+);
+
+const ITEM_TYPE_CODES = [
+  'armor',
+  'shield',
+  'weapon',
+  'equipment',
+  'tool',
+  'potion',
+  'scroll',
+  'book',
+  'ring',
+  'rod',
+  'stave',
+  'wand',
+  'wondrous_item',
+] as const;
+
+const RARITY_CODES = [
+  'common',
+  'uncommon',
+  'rare',
+  'very_rare',
+  'ledgendary',
+  'artifact',
+] as const;
+
+type ChipOption = { value: string; label: string };
+
+const typeOptions: ChipOption[] = ITEM_TYPE_CODES.filter((code) =>
+  rows.some((row) => row.itemType === code),
+).map((code) => ({ value: code, label: itemTypeLabel(code) }));
+
+const rarityOptions: ChipOption[] = RARITY_CODES.filter((code) =>
+  rows.some((row) => row.rarity === code),
+).map((code) => ({ value: code, label: itemRarityLabel(code) }));
+
+const hasFilters = rows.length > 0;
+const anyMagic = rows.some((row) => row.magic);
+const anyAttunement = rows.some((row) => row.requiresAttunement);
+const anyConsumable = rows.some((row) => row.consumable);
+---
+<Layout title="Items" shell shellPath={Astro.url.pathname}>
+  <h1 class="record-title">Items</h1>
+  {
+    rows.length === 0 ? (
+      <p class="meta">
+        No published items yet… Players only see items you publish from RPG
+        Manager.
+      </p>
+    ) : (
+      <div class="item-page" data-item-page>
+        {hasFilters && (
+          <section class="item-filters" aria-label="Item filters">
+            <div class="item-filters-header">
+              <label class="item-filter-search-label">
+                <span class="item-filter-label-text">Search</span>
+                <input
+                  type="search"
+                  class="item-filter-search"
+                  data-item-filter-search
+                  placeholder="Search by name, type, rarity, or description"
+                  autocomplete="off"
+                />
+              </label>
+              <div class="item-filter-summary">
+                <span class="item-filter-count" data-item-filter-count>
+                  {rows.length === 1 ? '1 item' : `${rows.length} items`}
+                </span>
+                <button
+                  type="button"
+                  class="item-filter-clear"
+                  data-item-filter-clear
+                  disabled
+                >
+                  Clear filters
+                </button>
+              </div>
+            </div>
+            {typeOptions.length > 0 && (
+              <div class="item-filter-group">
+                <span class="item-filter-label-text">Type</span>
+                <div class="item-filter-chips" role="group" aria-label="Type">
+                  {typeOptions.map((opt) => (
+                    <button
+                      type="button"
+                      class="item-filter-chip"
+                      data-filter-group="type"
+                      data-filter-value={opt.value}
+                      aria-pressed="false"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {rarityOptions.length > 0 && (
+              <div class="item-filter-group">
+                <span class="item-filter-label-text">Rarity</span>
+                <div
+                  class="item-filter-chips"
+                  role="group"
+                  aria-label="Rarity"
+                >
+                  {rarityOptions.map((opt) => (
+                    <button
+                      type="button"
+                      class="item-filter-chip"
+                      data-filter-group="rarity"
+                      data-filter-value={opt.value}
+                      aria-pressed="false"
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(anyMagic || anyAttunement || anyConsumable) && (
+              <div class="item-filter-group">
+                <span class="item-filter-label-text">Flags</span>
+                <div
+                  class="item-filter-chips"
+                  role="group"
+                  aria-label="Item flags"
+                >
+                  {anyMagic && (
+                    <button
+                      type="button"
+                      class="item-filter-chip"
+                      data-filter-toggle="magic"
+                      aria-pressed="false"
+                    >
+                      Magic only
+                    </button>
+                  )}
+                  {anyAttunement && (
+                    <button
+                      type="button"
+                      class="item-filter-chip"
+                      data-filter-toggle="attunement"
+                      aria-pressed="false"
+                    >
+                      Requires attunement
+                    </button>
+                  )}
+                  {anyConsumable && (
+                    <button
+                      type="button"
+                      class="item-filter-chip"
+                      data-filter-toggle="consumable"
+                      aria-pressed="false"
+                    >
+                      Consumable
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+        <p class="item-filter-empty is-hidden" data-item-empty>
+          No items match these filters.
+        </p>
+        {groups.map((group) => (
+          <section
+            class="block item-section"
+            data-item-section={group.typeCode}
+          >
+            <h2>{group.label}</h2>
+            <div class="item-grid">
+              {group.rows.map((row) => {
+                const heading =
+                  row.name.trim().length === 0 ? 'Item' : row.name;
+                const typeIconSvg = itemTypeIconSvg(row.itemType);
+                return (
+                  <a
+                    class="item-card-link"
+                    data-item-card
+                    data-section={group.typeCode}
+                    data-name={row.name}
+                    data-type={row.itemType}
+                    data-rarity={row.rarity}
+                    data-magic={row.magic ? 'true' : 'false'}
+                    data-attunement={row.requiresAttunement ? 'true' : 'false'}
+                    data-consumable={row.consumable ? 'true' : 'false'}
+                    data-search={row.searchText}
+                    href={`/records/item/${encodeURIComponent(row.id)}/`}
+                  >
+                    <span class="item-card-header">
+                      <span class="item-card-name">{heading}</span>
+                    </span>
+                    <span class="item-card-subband">
+                      <span
+                        class="item-card-subband-icon"
+                        set:html={typeIconSvg}
+                      />
+                      <span class="item-card-subtitle">{row.subtitle}</span>
+                    </span>
+                    <span class="item-card-body">
+                      <span
+                        class="item-card-watermark"
+                        set:html={typeIconSvg}
+                        aria-hidden="true"
+                      />
+                      <span class="item-card-mechanics">
+                        <span class="item-card-mechanics-row">
+                          <span class="item-card-mechanics-label">Type</span>
+                          <span class="item-card-mechanics-value">
+                            {itemTypeLabel(row.itemType)}
+                          </span>
+                        </span>
+                        <span class="item-card-mechanics-row">
+                          <span class="item-card-mechanics-label">Rarity</span>
+                          <span class="item-card-mechanics-value">
+                            {itemRarityLabel(row.rarity)}
+                          </span>
+                        </span>
+                        <span class="item-card-mechanics-row">
+                          <span class="item-card-mechanics-label">Details</span>
+                          <span class="item-card-mechanics-value">
+                            {row.detailsText}
+                          </span>
+                        </span>
+                      </span>
+                      {(row.magic || row.requiresAttunement || row.consumable) && (
+                        <span class="item-card-chip-row">
+                          {row.magic && (
+                            <span class="item-card-chip">Magic</span>
+                          )}
+                          {row.requiresAttunement && (
+                            <span class="item-card-chip">Attunement</span>
+                          )}
+                          {row.consumable && (
+                            <span class="item-card-chip">Consumable</span>
+                          )}
+                        </span>
+                      )}
+                      {row.descriptionPreview && (
+                        <span class="item-card-preview">
+                          {row.descriptionPreview}
+                        </span>
+                      )}
+                    </span>
+                    {row.goldRangeText && (
+                      <span class="item-card-footer">
+                        <span
+                          class="item-card-footer-icon"
+                          aria-hidden="true"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M12 7v10" />
+                            <path d="M9 9h6" />
+                            <path d="M9 15h6" />
+                          </svg>
+                        </span>
+                        <span class="item-card-footer-text">
+                          {row.goldRangeText}
+                        </span>
+                      </span>
+                    )}
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    )
+  }
+</Layout>
+
+<script>
+  import { initItemFilters } from '../../../lib/itemFilters';
+
+  function boot(): void {
+    const root = document.querySelector<HTMLElement>('[data-item-page]');
+    initItemFilters(root);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+</script>
+
+<style is:global>
+  .item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
+    margin: 0.5rem 0 0;
+  }
+  .item-card-link {
+    display: flex;
+    flex-direction: column;
+    min-height: 360px;
+    border-radius: 14px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    text-decoration: none;
+    overflow: hidden;
+    box-shadow: 0 10px 24px color-mix(in srgb, #000 28%, transparent);
+    transition: border-color 120ms ease, transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+  .item-card-link:hover {
+    border-color: var(--link);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px color-mix(in srgb, #000 36%, transparent);
+  }
+  .item-card-header {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 8px 12px 6px;
+    background: color-mix(in srgb, var(--link) 22%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--link) 24%, transparent);
+  }
+  .item-card-name {
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    line-height: 1.15;
+    text-transform: uppercase;
+    color: var(--fg);
+  }
+  .item-card-subband {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 5px 12px;
+    background: color-mix(in srgb, var(--link) 14%, #000 30%);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .item-card-subband-icon,
+  .item-card-footer-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: var(--link);
+  }
+  .item-card-subband-icon svg,
+  .item-card-footer-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+  .item-card-subtitle {
+    min-width: 0;
+    font-size: 0.82rem;
+    font-weight: 650;
+    color: var(--fg);
+    line-height: 1.25;
+  }
+  .item-card-body {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    background: color-mix(in srgb, var(--sidebar-bg) 86%, #000 14%);
+    overflow: hidden;
+  }
+  .item-card-watermark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--link);
+    opacity: 0.075;
+    pointer-events: none;
+  }
+  .item-card-watermark svg {
+    width: 58%;
+    height: 58%;
+    max-width: 220px;
+    max-height: 220px;
+  }
+  .item-card-mechanics,
+  .item-card-chip-row,
+  .item-card-preview {
+    position: relative;
+    z-index: 1;
+  }
+  .item-card-mechanics {
+    border-radius: 9px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+  }
+  .item-card-mechanics-row {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+  }
+  .item-card-mechanics-row + .item-card-mechanics-row {
+    border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .item-card-mechanics-label,
+  .item-card-mechanics-value {
+    padding: 6px 8px;
+    font-size: 0.76rem;
+    line-height: 1.25;
+  }
+  .item-card-mechanics-label {
+    color: var(--muted);
+    font-weight: 800;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--sidebar-bg) 56%, #fff 6%);
+    border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .item-card-mechanics-value {
+    color: var(--fg);
+    background: color-mix(in srgb, var(--sidebar-bg) 82%, #fff 3%);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .item-card-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .item-card-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: var(--fg);
+    background: color-mix(in srgb, var(--sidebar-bg) 58%, #000 42%);
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .item-card-preview {
+    color: var(--fg);
+    display: -webkit-box;
+    font-size: 0.84rem;
+    line-height: 1.42;
+    opacity: 0.9;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .item-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 6px 12px 8px;
+    background: color-mix(in srgb, var(--link) 14%, #000 30%);
+    border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    color: var(--fg);
+  }
+  .item-card-footer-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.82rem;
+    font-weight: 650;
+  }
+
+  .item-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .item-filters-header {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .item-filter-search-label {
+    flex: 1 1 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 220px;
+  }
+  .item-filter-label-text {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .item-filter-search {
+    appearance: none;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+    color: var(--fg);
+    font: inherit;
+  }
+  .item-filter-search:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 1px;
+  }
+  .item-filter-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+  .item-filter-count {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .item-filter-clear {
+    appearance: none;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    cursor: pointer;
+  }
+  .item-filter-clear:hover:not(:disabled) {
+    border-color: var(--link);
+    color: var(--link);
+  }
+  .item-filter-clear:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .item-filter-group {
+    display: grid;
+    grid-template-columns: minmax(96px, 0.2fr) 1fr;
+    gap: 8px 14px;
+    align-items: start;
+  }
+  .item-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .item-filter-chip {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    color: var(--fg);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    cursor: pointer;
+    transition: border-color 120ms ease, background 120ms ease,
+      color 120ms ease;
+    font: inherit;
+  }
+  .item-filter-chip:hover {
+    border-color: var(--link);
+  }
+  .item-filter-chip[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--link) 28%, transparent);
+    border-color: var(--link);
+    color: var(--fg);
+  }
+  .item-filter-empty {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .item-card-link.is-hidden,
+  .item-section.is-hidden,
+  .item-filter-empty.is-hidden,
+  .item-filter-chip.is-hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 720px) {
+    .item-filter-group {
+      grid-template-columns: 1fr;
+    }
+    .item-filter-summary {
+      width: 100%;
+      margin-left: 0;
+      justify-content: space-between;
+    }
+  }
+</style>

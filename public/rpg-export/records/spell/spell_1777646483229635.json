@@ -1,0 +1,43 @@
+{
+  "recordType": "spell",
+  "recordId": "spell_1777646483229635",
+  "data": {
+    "id": "spell_1777646483229635",
+    "name": "Hysterical Frenzy",
+    "description": "You unleash a torrent of overwhelming emotion, blending agony and euphoria into a maddening storm. Each creature in a 20-foot-radius sphere centered on a point you can see within range must make a Wisdom saving throw.\r<br>\nOn a failed save, a creature is affected by the <a href=\"/records/condition/condition_1777630830518826\">Rampaging</a> condition for the duration. At the end of each of its turns, the creature can repeat the saving throw, ending the effect on a success. The creature has disadvantage on this saving throw if it damaged another creature with an attack during that turn.",
+    "forHigherLevels": "The sphere’s radius increases by 5 feet for each slot level above 5th.",
+    "level": "FIFTH",
+    "school": "ENCHANTMENT",
+    "spellDuration": "ONE_MINUTE",
+    "spellRange": "NINETY_FEET",
+    "concentration": true,
+    "castingTime": 1,
+    "castingType": "ACTION",
+    "reactionTrigger": "",
+    "components": [
+      "verbal",
+      "somatic"
+    ],
+    "materialDescription": "",
+    "tagIds": [],
+    "classIds": [
+      "class_web_bard",
+      "class_web_sorcerer",
+      "class_web_wizard"
+    ],
+    "sourceRefs": [
+      {
+        "fileId": "resource_file_1777628291319408",
+        "pageNumber": 20
+      }
+    ],
+    "createdAt": "2026-05-01T16:41:23.229635",
+    "updatedAt": "2026-05-13T05:41:14.902246",
+    "classNames": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "tagNames": []
+  }
+}

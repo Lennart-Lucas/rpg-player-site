@@ -1,0 +1,86 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import Layout from '../layouts/Layout.astro';
+
+interface Props {
+  title: string;
+  recordType: string;
+  emptyText: string;
+}
+
+const { title, recordType, emptyText } = Astro.props;
+
+type RecordRow = {
+  id: string;
+  name: string;
+};
+
+const recordsDir = path.join(
+  process.cwd(),
+  'public',
+  'rpg-export',
+  'records',
+  recordType,
+);
+
+let rows: RecordRow[] = [];
+try {
+  if (fs.existsSync(recordsDir)) {
+    for (const file of fs.readdirSync(recordsDir)) {
+      if (!file.endsWith('.json')) continue;
+      const raw = fs.readFileSync(path.join(recordsDir, file), 'utf8');
+      const parsed = JSON.parse(raw) as {
+        recordId?: string;
+        data?: Record<string, unknown>;
+      };
+      const data = parsed.data ?? {};
+      const id =
+        (typeof parsed.recordId === 'string' && parsed.recordId) ||
+        (typeof data.id === 'string'
+          ? (data.id as string)
+          : file.replace(/\.json$/, ''));
+      if (!id) continue;
+      rows.push({
+        id,
+        name:
+          (typeof data.name === 'string' && data.name) ||
+          (typeof data.title === 'string' && data.title) ||
+          id,
+      });
+    }
+  }
+} catch {
+  rows = [];
+}
+
+rows.sort((a, b) =>
+  a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+);
+---
+<Layout title={title} shell shellPath={Astro.url.pathname}>
+  <h1 class="record-title">{title}</h1>
+  {
+    rows.length === 0 ? (
+      <p class="meta">{emptyText}</p>
+    ) : (
+      <ul class="record-list">
+        {rows.map((row) => (
+          <li>
+            <a href={`/records/${recordType}/${encodeURIComponent(row.id)}/`}>
+              {row.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Layout>
+
+<style is:global>
+  .record-list {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin: 0.5rem 0 0;
+  }
+</style>
