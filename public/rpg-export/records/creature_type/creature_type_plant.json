@@ -1,0 +1,28 @@
+{
+  "recordType": "creature_type",
+  "recordId": "creature_type_plant",
+  "data": {
+    "id": "creature_type_plant",
+    "name": "Plant",
+    "size": null,
+    "parentCreatureTypeId": null,
+    "quote": "",
+    "author": "",
+    "sections": [],
+    "damageImmunityIds": [],
+    "customDamageImmunities": [],
+    "damageResistanceIds": [],
+    "customDamageResistances": [],
+    "damageVulnerabilityIds": [],
+    "customDamageVulnerabilities": [],
+    "conditionImmunityIds": [],
+    "languageIds": [],
+    "customLanguages": [],
+    "skillIds": [],
+    "senses": [],
+    "movement": [],
+    "traits": [],
+    "createdAt": "2026-04-29T18:43:15.265441",
+    "updatedAt": "2026-06-08T16:39:53.245637"
+  }
+}

@@ -1,4 +1,6 @@
 ---
+import { CREATURE_TYPE_ICON_PATH } from '../lib/creatureIcons';
+
 interface Props {
   title: string;
   description?: string;
@@ -57,6 +59,8 @@ const svgOpen =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
 const svgClose = '</svg>';
 const icon = (paths: string) => `${svgOpen}${paths}${svgClose}`;
+const filledIcon = (pathD: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="${pathD}"/></svg>`;
 
 const homeIcon = icon(
   '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />',
@@ -70,9 +74,7 @@ const navSections: NavSection[] = [
         href: creaturesHref,
         label: 'Creatures',
         active: activeFor(creaturesHref, ['creature_type']),
-        icon: icon(
-          '<path d="M10 5.172A2 2 0 0 1 11.414 4h1.172A2 2 0 0 1 14 5.172l.414.828H17a2 2 0 0 1 2 2v2.586A2 2 0 0 1 18.414 12L17 13.414V16a4 4 0 0 1-8 0v-2.586L7.586 12A2 2 0 0 1 7 10.586V8a2 2 0 0 1 2-2h.586z" /><path d="M9 9h.01" /><path d="M15 9h.01" /><path d="M10 2v2" /><path d="M14 2v2" />',
-        ),
+        icon: filledIcon(CREATURE_TYPE_ICON_PATH),
       },
       {
         href: charactersHref,

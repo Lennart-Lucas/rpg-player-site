@@ -1,0 +1,47 @@
+{
+  "recordType": "creature_type",
+  "recordId": "creature_type_1777628491936054",
+  "data": {
+    "id": "creature_type_1777628491936054",
+    "name": "Demons of Excess",
+    "size": "MEDIUM",
+    "parentCreatureTypeId": "creature_type_fiend",
+    "quote": "",
+    "author": "",
+    "sections": [],
+    "damageImmunityIds": [],
+    "customDamageImmunities": [],
+    "damageResistanceIds": [
+      "damage_type_cold",
+      "damage_type_fire",
+      "damage_type_lightning",
+      "damage_type_psychic"
+    ],
+    "customDamageResistances": [],
+    "damageVulnerabilityIds": [
+      "damage_type_poison"
+    ],
+    "customDamageVulnerabilities": [],
+    "conditionImmunityIds": [
+      "condition_poisoned"
+    ],
+    "languageIds": [
+      "language_1777628535448616"
+    ],
+    "customLanguages": [],
+    "skillIds": [
+      "skill_acrobatics",
+      "skill_perception"
+    ],
+    "senses": [
+      {
+        "label": "Darkvision",
+        "amount": 120
+      }
+    ],
+    "movement": [],
+    "traits": [],
+    "createdAt": "2026-05-01T11:41:31.936054",
+    "updatedAt": "2026-06-08T16:10:36.546069"
+  }
+}

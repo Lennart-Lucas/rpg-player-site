@@ -1,0 +1,79 @@
+{
+  "recordType": "creature_type",
+  "recordId": "creature_type_1777628613568519",
+  "data": {
+    "id": "creature_type_1777628613568519",
+    "name": "Demonettes",
+    "size": "MEDIUM",
+    "parentCreatureTypeId": "creature_type_1777628491936054",
+    "quote": "",
+    "author": "",
+    "sections": [],
+    "damageImmunityIds": [],
+    "customDamageImmunities": [],
+    "damageResistanceIds": [
+      "damage_type_cold",
+      "damage_type_fire",
+      "damage_type_lightning",
+      "damage_type_psychic"
+    ],
+    "customDamageResistances": [],
+    "damageVulnerabilityIds": [
+      "damage_type_poison"
+    ],
+    "customDamageVulnerabilities": [],
+    "conditionImmunityIds": [
+      "condition_poisoned"
+    ],
+    "languageIds": [
+      "language_1777628535448616"
+    ],
+    "customLanguages": [
+      "Telepathy 60 ft."
+    ],
+    "skillIds": [
+      "skill_acrobatics",
+      "skill_deception",
+      "skill_perception",
+      "skill_performance",
+      "skill_persuasion"
+    ],
+    "senses": [
+      {
+        "label": "Darkvision",
+        "amount": 120
+      }
+    ],
+    "movement": [
+      {
+        "label": "Normal",
+        "amount": 50
+      }
+    ],
+    "traits": [
+      {
+        "name": "Aura of Indulgence",
+        "description": "Any non-<a href=\"/records/creature_type/creature_type_1777628491936054\">Demon of Excess</a> that starts its turn within 10 feet of one or more creatures with this aura must make a Wisdom Saving Throw:\r<br>\nDC [DC] + 1 per each additional creature with this aura within 10 feet of the target, using the highest DC of these creatures if multipleare present.<br>\n* **Failure:** The creature is <a href=\"/records/condition/condition_1777629325948862\">Obsessed</a> with all creatures with this aura until the start of its next turn. While <a href=\"/records/condition/condition_1777629325948862\">Obsessed</a>, attacks against the creature have advantage.<br>\n* **Success:** The creature is immune to the Aura of Indulgence of all creatures for 10 minutes.",
+        "kind": "free",
+        "featureId": "feature_1777630393429005",
+        "showOnMonsterTypePage": true
+      },
+      {
+        "name": "Demonette Claw",
+        "description": "Melee Weapon Attack: [attack] vs AC, reach 5 ft., one target. **Hit:** [damage * 2 / 3, d8] <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Slashing</span> damage plus [damage * 2 / 3, d10] <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Psychic</span> damage if the target is <a href=\"/records/condition/condition_charmed\">Charmed</a>, <a href=\"/records/condition/condition_dazed\">Dazed</a>, <a href=\"/records/condition/condition_1777629503633736\">Drowzy</a>, <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Frightened</span>, <a href=\"/records/condition/condition_1777629325948862\">Obsessed</a>, <a href=\"/records/condition/condition_1777630830518826\">[[condition/condition_1777630830518826]]</a>, or <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Stunned</span>.",
+        "kind": "free",
+        "featureId": "feature_1777630575729153",
+        "showOnMonsterTypePage": true
+      },
+      {
+        "name": "Demonette Rider",
+        "description": "If the [name] has a controlled mount that is also a <a href=\"/records/creature_type/creature_type_1777628491936054\">Demons of Excess</a>, the mount can take the Attack action once on each of the [names] turns and use its bonus action on it sturn. If it takes this action, the mount cannot take Dash, Disengage, and Dodge on that turn.",
+        "kind": "free",
+        "featureId": "feature_1777639899181688",
+        "showOnMonsterTypePage": true
+      }
+    ],
+    "createdAt": "2026-05-01T11:43:33.568519",
+    "updatedAt": "2026-06-08T16:10:46.224843"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "id": "creature_type_fiend",
+      "name": "Fiend",
+      "parentCreatureTypeId": null,
+      "size": ""
+    },
+    {
+      "id": "creature_type_1777628491936054",
+      "name": "Demons of Excess",
+      "parentCreatureTypeId": "creature_type_fiend",
+      "size": "MEDIUM"
+    },
+    {
+      "id": "creature_type_1777628613568519",
+      "name": "Demonettes",
+      "parentCreatureTypeId": "creature_type_1777628491936054",
+      "size": "MEDIUM"
+    },
+    {
+      "id": "creature_type_plant",
+      "name": "Plant",
+      "parentCreatureTypeId": null,
+      "size": ""
+    }
+  ]
+}

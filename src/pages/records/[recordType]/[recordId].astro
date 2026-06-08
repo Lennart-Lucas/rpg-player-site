@@ -6,8 +6,10 @@ import LocationTreeList from '../../../components/LocationTreeList.astro';
 import type { LocationNodeData } from '../../../components/LocationNode.astro';
 import {
   htmlForRecord,
+  type CreatureIndexEntry,
   type LocationIndexEntry,
 } from '../../../lib/recordRender';
+import { creatureTypeIconSvg } from '../../../lib/creatureIcons';
 import { applyInlineMarkdownHtml, formatCardBodyHtml } from '../../../lib/cardBodyHtml';
 import {
   conditionAccentHex,
@@ -34,6 +36,22 @@ import {
 type LocationTreeNode = {
   item: LocationIndexEntry;
   children: LocationTreeNode[];
+};
+
+type CreatureTreeNode = {
+  item: CreatureIndexEntry;
+  children: CreatureTreeNode[];
+};
+
+const creatureIconSvg = creatureTypeIconSvg();
+
+const creatureSizeLabels: Record<string, string> = {
+  TINY: 'Tiny',
+  SMALL: 'Small',
+  MEDIUM: 'Medium',
+  LARGE: 'Large',
+  HUGE: 'Huge',
+  GARGANTUAN: 'Gargantuan',
 };
 
 export function getStaticPaths() {
@@ -81,6 +99,29 @@ function stringArray(raw: unknown): string[] {
   return raw
     .map((v) => (typeof v === 'string' ? v.trim() : ''))
     .filter((v) => v.length > 0);
+}
+
+function loadCreatureIndex(): CreatureIndexEntry[] {
+  const indexPath = path.join(
+    process.cwd(),
+    'public',
+    'rpg-export',
+    'creatures-index.json',
+  );
+  try {
+    const raw = fs.readFileSync(indexPath, 'utf8');
+    const parsed = JSON.parse(raw) as { items?: CreatureIndexEntry[] };
+    if (!Array.isArray(parsed.items)) return [];
+    return parsed.items.filter(
+      (i) =>
+        i &&
+        typeof i.id === 'string' &&
+        i.id.length > 0 &&
+        typeof i.name === 'string',
+    );
+  } catch {
+    return [];
+  }
 }
 
 function loadLocationIndex(): LocationIndexEntry[] {
@@ -165,6 +206,72 @@ function toLocationNodeDataList(
   }));
 }
 
+function displayCreatureSize(code: string): string {
+  const t = code.trim();
+  if (!t) return '';
+  return creatureSizeLabels[t.toUpperCase()] ?? t;
+}
+
+function buildCreatureDescendantTree(
+  items: CreatureIndexEntry[],
+  rootId: string,
+): CreatureTreeNode[] {
+  const ids = new Set(items.map((r) => r.id));
+  const byParent = new Map<string | null, CreatureIndexEntry[]>();
+  for (const row of items) {
+    const p =
+      typeof row.parentCreatureTypeId === 'string' &&
+      row.parentCreatureTypeId.trim().length > 0 &&
+      ids.has(row.parentCreatureTypeId)
+        ? row.parentCreatureTypeId
+        : null;
+    const list = byParent.get(p) ?? [];
+    list.push(row);
+    byParent.set(p, list);
+  }
+  for (const list of byParent.values()) {
+    list.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
+  function walk(parent: string): CreatureTreeNode[] {
+    const list = byParent.get(parent) ?? [];
+    return list.map((item) => ({ item, children: walk(item.id) }));
+  }
+  return walk(rootId);
+}
+
+function creatureSubtitleFor(
+  item: CreatureIndexEntry,
+  byId: Map<string, CreatureIndexEntry>,
+): string {
+  const size = displayCreatureSize(item.size);
+  const parentId = item.parentCreatureTypeId;
+  if (
+    parentId &&
+    typeof parentId === 'string' &&
+    parentId.trim().length > 0 &&
+    byId.has(parentId.trim())
+  ) {
+    const parentName = byId.get(parentId.trim())!.name;
+    return size ? `${size} \u00b7 in ${parentName}` : `in ${parentName}`;
+  }
+  return size || 'Creature type';
+}
+
+function toCreatureNodeDataList(
+  nodes: CreatureTreeNode[],
+  byId: Map<string, CreatureIndexEntry>,
+): LocationNodeData[] {
+  return nodes.map((n) => ({
+    id: n.item.id,
+    name: n.item.name,
+    href: `/records/creature_type/${encodeURIComponent(n.item.id)}/`,
+    subtitle: creatureSubtitleFor(n.item, byId),
+    children: toCreatureNodeDataList(n.children, byId),
+  }));
+}
+
 const { recordType, recordId } = Astro.params;
 const file = path.join(
   process.cwd(),
@@ -185,9 +292,15 @@ const payload = JSON.parse(fs.readFileSync(file, 'utf8')) as {
 
 let locationIndexItems: LocationIndexEntry[] = [];
 let locationIndexById: Map<string, LocationIndexEntry> | undefined;
+let creatureIndexItems: CreatureIndexEntry[] = [];
+let creatureIndexById: Map<string, CreatureIndexEntry> | undefined;
 if (recordType === 'location') {
   locationIndexItems = loadLocationIndex();
   locationIndexById = new Map(locationIndexItems.map((i) => [i.id, i]));
+}
+if (recordType === 'creature_type') {
+  creatureIndexItems = loadCreatureIndex();
+  creatureIndexById = new Map(creatureIndexItems.map((i) => [i.id, i]));
 }
 
 function playerSiteRecordJsonExists(
@@ -207,6 +320,32 @@ function playerSiteRecordJsonExists(
   return fs.existsSync(p);
 }
 
+function resolvePublishedRecordName(
+  recordType: string,
+  recordId: string,
+): string | null {
+  if (!playerSiteRecordJsonExists(recordType, recordId)) return null;
+  const p = path.join(
+    process.cwd(),
+    'public',
+    'rpg-export',
+    'records',
+    recordType,
+    `${recordId}.json`,
+  );
+  try {
+    const payload = JSON.parse(fs.readFileSync(p, 'utf8')) as {
+      data?: Record<string, unknown>;
+    };
+    const name = payload.data?.name;
+    return typeof name === 'string' && name.trim().length > 0
+      ? name.trim()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 const isCondition = recordType === 'condition';
 const isItem = recordType === 'item';
 const isSpell = recordType === 'spell';
@@ -215,7 +354,9 @@ const body =
     ? ''
     : htmlForRecord(recordType!, payload.data, {
         locationIndexById,
+        creatureIndexById,
         recordJsonExists: playerSiteRecordJsonExists,
+        resolveRecordName: resolvePublishedRecordName,
       });
 const title =
   (typeof payload.data.name === 'string' && payload.data.name) ||
@@ -227,6 +368,22 @@ if (recordType === 'location' && typeof recordId === 'string' && locationIndexBy
   const subtree = buildDescendantTree(locationIndexItems, recordId);
   if (subtree.length > 0) {
     childLocationRoots = toLocationNodeDataList(subtree, locationIndexById);
+  }
+}
+
+const showCreatureSubtypesSection = recordType === 'creature_type';
+let childCreatureSubtypeRoots: LocationNodeData[] = [];
+if (
+  recordType === 'creature_type' &&
+  typeof recordId === 'string' &&
+  creatureIndexById
+) {
+  const subtree = buildCreatureDescendantTree(creatureIndexItems, recordId);
+  if (subtree.length > 0) {
+    childCreatureSubtypeRoots = toCreatureNodeDataList(
+      subtree,
+      creatureIndexById,
+    );
   }
 }
 
@@ -543,6 +700,21 @@ if (isSpell) {
       </section>
     )
   }
+  {
+    showCreatureSubtypesSection && (
+      <section class="creature-subtypes-section">
+        <h2 class="creature-subtypes-heading">Subtypes</h2>
+        {childCreatureSubtypeRoots.length > 0 ? (
+          <LocationTreeList
+            roots={childCreatureSubtypeRoots}
+            cardIconSvg={creatureIconSvg}
+          />
+        ) : (
+          <p class="detail-empty-subtypes">No subtypes.</p>
+        )}
+      </section>
+    )
+  }
 </Layout>
 
 <style is:global>
@@ -783,6 +955,75 @@ if (isSpell) {
     color: var(--muted);
   }
 
+  /* Creature type detail (mirrors app infobox + quote + sections) */
+  .creature-overview-inner {
+    padding: 0;
+    overflow: hidden;
+  }
+  .creature-overview-titleband {
+    margin: 0;
+    padding: 0.65rem 0.85rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--fg);
+    background: color-mix(in srgb, var(--link) 22%, transparent);
+    border-bottom: 1px solid var(--loc-outline, var(--border));
+  }
+  .creature-overview .loc-overview-media {
+    border-top: none;
+  }
+  .creature-pin {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: block;
+    margin: 0 auto 0.35rem;
+    opacity: 0.85;
+  }
+  .creature-overview-meta-gap {
+    height: 0.65rem;
+  }
+  .creature-quote {
+    margin: 0 0 1rem;
+    padding: 0;
+    border: none;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--link) 8%, var(--sidebar-bg));
+  }
+  .creature-quote::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: color-mix(in srgb, var(--link) 85%, transparent);
+  }
+  .creature-quote-text {
+    margin: 0;
+    padding: 0.75rem 0.85rem 0.75rem 1rem;
+    font-style: normal;
+    line-height: 1.45;
+    color: var(--fg);
+  }
+  .creature-quote-author {
+    margin: 0;
+    padding: 0 0.85rem 0.75rem 1rem;
+    text-align: right;
+    font-size: 0.88rem;
+    font-style: italic;
+    color: var(--muted);
+  }
+  .loc-sec-subtitle {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--fg);
+  }
+
   .detail-outlined {
     position: relative;
     margin-top: 1.35rem;
@@ -803,6 +1044,21 @@ if (isSpell) {
     border-radius: 10px;
     padding: 0.75rem 0.85rem;
     background: rgba(255, 255, 255, 0.03);
+  }
+  .creature-subtypes-section {
+    margin-top: 1.35rem;
+  }
+  .creature-subtypes-heading {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  .detail-empty-subtypes {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.45;
   }
 
   .condition-card {

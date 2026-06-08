@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-06-08T11:04:02.070831Z",
+  "exportedAt": "2026-06-08T14:40:14.331763Z",
   "home": {
     "recordType": "campaign",
     "recordId": "campaign_1777543502362419"
@@ -100,6 +100,22 @@
     {
       "recordType": "spell",
       "recordId": "spell_1780916602205594"
+    },
+    {
+      "recordType": "creature_type",
+      "recordId": "creature_type_fiend"
+    },
+    {
+      "recordType": "creature_type",
+      "recordId": "creature_type_1777628491936054"
+    },
+    {
+      "recordType": "creature_type",
+      "recordId": "creature_type_1777628613568519"
+    },
+    {
+      "recordType": "creature_type",
+      "recordId": "creature_type_plant"
     }
   ]
 }

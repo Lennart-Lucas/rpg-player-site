@@ -4,7 +4,7 @@
   "data": {
     "id": "spell_1780916602205594",
     "name": "Vicious Lash",
-    "description": "You conjure a whip of raw torment and lash it in a 5-foot-wideline extending from you to a creature within range. Make  amelee spell attack against the creature. On a hit, the target takes 2d6 <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Thunder</span> damage.\r<br>\nHit or miss, the target and each creature in the linebetween you and it must succeed on a Dexterity saving throwor take 2d6 psychic damage.",
+    "description": "You conjure a whip of raw torment and lash it in a 5-foot-wideline extending from you to a creature within range. Make  amelee spell attack against the creature. On a hit, the target takes 2d6 <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Thunder</span> damage.\r<br>\nHit or miss, the target and each creature in the line between you and it must succeed on a Dexterity saving throw or take 2d6 <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Psychic</span> damage.",
     "forHigherLevels": "Both the <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Thunder</span> and <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Psychic</span> damage increase by 1d6, and the spell’s range increases by 10 feet for each slot level above 1st.",
     "level": "FIRST",
     "school": "CONJURATION",
@@ -31,7 +31,7 @@
       }
     ],
     "createdAt": "2026-06-08T13:03:22.205594",
-    "updatedAt": "2026-06-08T13:03:22.205594",
+    "updatedAt": "2026-06-08T13:04:54.563045",
     "classNames": [
       "Artificer",
       "Bard",

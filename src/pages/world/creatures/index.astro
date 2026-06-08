@@ -1,8 +1,116 @@
 ---
-import RecordListPage from '../../../components/RecordListPage.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+import Layout from '../../../layouts/Layout.astro';
+import LocationTreeList from '../../../components/LocationTreeList.astro';
+import type { LocationNodeData } from '../../../components/LocationNode.astro';
+import { creatureTypeIconSvg } from '../../../lib/creatureIcons';
+
+type IndexItem = {
+  id: string;
+  name: string;
+  parentCreatureTypeId: string | null;
+  size: string;
+};
+
+const indexPath = path.join(
+  process.cwd(),
+  'public',
+  'rpg-export',
+  'creatures-index.json',
+);
+
+let items: IndexItem[] = [];
+try {
+  const raw = fs.readFileSync(indexPath, 'utf8');
+  const parsed = JSON.parse(raw) as { items?: IndexItem[] };
+  if (Array.isArray(parsed.items)) {
+    items = parsed.items.filter(
+      (i) =>
+        i &&
+        typeof i.id === 'string' &&
+        i.id.length > 0 &&
+        typeof i.name === 'string',
+    );
+  }
+} catch {
+  items = [];
+}
+
+const sizeLabels: Record<string, string> = {
+  TINY: 'Tiny',
+  SMALL: 'Small',
+  MEDIUM: 'Medium',
+  LARGE: 'Large',
+  HUGE: 'Huge',
+  GARGANTUAN: 'Gargantuan',
+};
+
+function displaySize(code: string): string {
+  const t = code.trim();
+  if (!t) return '';
+  return sizeLabels[t.toUpperCase()] ?? t;
+}
+
+const byId = new Map(items.map((i) => [i.id, i]));
+
+function subtitleFor(item: IndexItem): string {
+  const size = displaySize(item.size);
+  const parentId = item.parentCreatureTypeId;
+  if (parentId && byId.has(parentId)) {
+    const parentName = byId.get(parentId)!.name;
+    return size ? `${size} \u00b7 in ${parentName}` : `in ${parentName}`;
+  }
+  return size || 'Creature type';
+}
+
+function buildTree(rows: IndexItem[]): LocationNodeData[] {
+  const ids = new Set(rows.map((r) => r.id));
+  const byParent = new Map<string | null, IndexItem[]>();
+  for (const row of rows) {
+    const p =
+      row.parentCreatureTypeId &&
+      typeof row.parentCreatureTypeId === 'string' &&
+      row.parentCreatureTypeId.trim().length > 0 &&
+      ids.has(row.parentCreatureTypeId)
+        ? row.parentCreatureTypeId
+        : null;
+    const list = byParent.get(p) ?? [];
+    list.push(row);
+    byParent.set(p, list);
+  }
+  for (const list of byParent.values()) {
+    list.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
+  function walk(parent: string | null): LocationNodeData[] {
+    const list = byParent.get(parent) ?? [];
+    return list.map((item) => ({
+      id: item.id,
+      name: item.name,
+      href: `/records/creature_type/${encodeURIComponent(item.id)}/`,
+      subtitle: subtitleFor(item),
+      children: walk(item.id),
+    }));
+  }
+  return walk(null);
+}
+
+const roots = buildTree(items);
+
+const creatureIconSvg = creatureTypeIconSvg();
 ---
-<RecordListPage
-  title="Creatures"
-  recordType="creature_type"
-  emptyText="No published creatures yet… Players only see creatures you publish from RPG Manager."
-/>
+<Layout title="Creatures" shell shellPath={Astro.url.pathname}>
+  <h1 class="record-title">Creatures</h1>
+  {
+    items.length === 0 ? (
+      <p class="meta">
+        No published creatures yet… Players only see creatures you publish from
+        RPG Manager.
+      </p>
+    ) : (
+      <LocationTreeList roots={roots} cardIconSvg={creatureIconSvg} />
+    )
+  }
+</Layout>

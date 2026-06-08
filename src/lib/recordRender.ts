@@ -1,3 +1,5 @@
+import { applyInlineMarkdownHtml } from './cardBodyHtml';
+import { creatureTypeIconSvg } from './creatureIcons';
 import { enrichWithRecordLinks } from './htmlLinkify';
 
 /** Row from `locations-index.json` (used for hierarchy links on location pages). */
@@ -8,14 +10,25 @@ export type LocationIndexEntry = {
   parentLocationId: string | null;
 };
 
+/** Row from `creatures-index.json` (used for hierarchy links on creature pages). */
+export type CreatureIndexEntry = {
+  id: string;
+  name: string;
+  parentCreatureTypeId: string | null;
+  size: string;
+};
+
 export type HtmlForRecordOptions = {
   locationIndexById?: Map<string, LocationIndexEntry>;
+  creatureIndexById?: Map<string, CreatureIndexEntry>;
   /**
    * When set, location quote / section bodies still containing `[[type/id]]`
    * (or legacy `@type/id`) are turned into links if the target record JSON
    * exists under `public/rpg-export/records/`.
    */
   recordJsonExists?: (recordType: string, recordId: string) => boolean;
+  /** Resolve a published record's display name (e.g. language rows). */
+  resolveRecordName?: (recordType: string, recordId: string) => string | null;
 };
 
 /** Build display HTML from exported record JSON (`payload.data`). */
@@ -32,6 +45,14 @@ export function htmlForRecord(
       data,
       options?.locationIndexById ?? new Map(),
       options?.recordJsonExists,
+    );
+  }
+  if (recordType === 'creature_type') {
+    return htmlForCreatureTypeRecord(
+      data,
+      options?.creatureIndexById ?? new Map(),
+      options?.recordJsonExists,
+      options?.resolveRecordName,
     );
   }
   const parts: string[] = [];
@@ -435,4 +456,315 @@ function htmlForLocationRecord(
   const bodyMain = `<div class="loc-body">${pageLead}${quoteBlock}${sectionBlocks}${downloadBlock}</div>`;
 
   return `<div class="location-detail-page"><div class="location-detail-grid">${overview}${bodyMain}</div></div>`;
+}
+
+const CREATURE_SIZE_LABELS: Record<string, string> = {
+  TINY: 'Tiny',
+  SMALL: 'Small',
+  MEDIUM: 'Medium',
+  LARGE: 'Large',
+  HUGE: 'Huge',
+  GARGANTUAN: 'Gargantuan',
+};
+
+function displayCreatureSize(code: unknown): string {
+  if (typeof code !== 'string') return '';
+  const t = code.trim();
+  if (!t) return '';
+  return CREATURE_SIZE_LABELS[t.toUpperCase()] ?? t;
+}
+
+function creatureTypeHref(id: string): string {
+  return `/records/creature_type/${encodeURIComponent(id)}/`;
+}
+
+function stringList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((v) => (typeof v === 'string' ? v.trim() : ''))
+    .filter((v) => v.length > 0);
+}
+
+function commaSeparatedNonemptyLabels(items: unknown): string {
+  if (!Array.isArray(items)) return '';
+  const parts: string[] = [];
+  for (const e of items) {
+    if (!e || typeof e !== 'object') continue;
+    const label =
+      typeof (e as Record<string, unknown>).label === 'string'
+        ? ((e as Record<string, unknown>).label as string).trim()
+        : '';
+    if (label.length > 0) parts.push(label);
+  }
+  return parts.join(', ');
+}
+
+function movementPaceFromNormalSpeed(movement: unknown): string | null {
+  if (!Array.isArray(movement)) return null;
+  let amount: number | null = null;
+  for (const e of movement) {
+    if (!e || typeof e !== 'object') continue;
+    const o = e as Record<string, unknown>;
+    const label = typeof o.label === 'string' ? o.label.trim().toLowerCase() : '';
+    if (label !== 'normal') continue;
+    if (typeof o.amount === 'number' && !Number.isNaN(o.amount)) {
+      amount = o.amount;
+      break;
+    }
+  }
+  if (amount == null) return null;
+  if (amount < 30) return 'Slow';
+  if (amount > 30) return 'Fast';
+  return 'Normal';
+}
+
+function formatCreatureLanguages(
+  data: Record<string, unknown>,
+  resolveRecordName?: (recordType: string, recordId: string) => string | null,
+): string {
+  const parts: string[] = [];
+  for (const id of stringList(data.languageIds)) {
+    const name = resolveRecordName?.('language', id)?.trim();
+    if (name && name.length > 0) parts.push(name);
+  }
+  for (const custom of stringList(data.customLanguages)) {
+    parts.push(custom);
+  }
+  return parts.join(', ');
+}
+
+function formatCreatureTraitNames(traits: unknown): string {
+  if (!Array.isArray(traits)) return '';
+  const names: string[] = [];
+  for (const tr of traits) {
+    if (!tr || typeof tr !== 'object') continue;
+    const o = tr as Record<string, unknown>;
+    if (o.showOnMonsterTypePage === false) continue;
+    const n = typeof o.name === 'string' ? o.name.trim() : '';
+    if (n.length > 0) names.push(n);
+  }
+  return names.join(', ');
+}
+
+function visibleCreatureSections(
+  sections: unknown,
+): { title: string; contents: string }[] {
+  if (!Array.isArray(sections)) return [];
+  const out: { title: string; contents: string }[] = [];
+  for (const s of sections) {
+    if (!s || typeof s !== 'object') continue;
+    const o = s as Record<string, unknown>;
+    const title = typeof o.title === 'string' ? o.title : '';
+    const contents = typeof o.contents === 'string' ? o.contents : '';
+    if (title.trim().length > 0 || contents.trim().length > 0) {
+      out.push({ title, contents });
+    }
+  }
+  return out;
+}
+
+function formatCreatureSectionHtml(
+  raw: string,
+  recordJsonExists?: (recordType: string, recordId: string) => boolean,
+): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+  const linkify = (line: string): string => {
+    if (recordJsonExists) {
+      return enrichWithRecordLinks(line, recordJsonExists);
+    }
+    return escapeHtml(line);
+  };
+  const lines = trimmed.split('\n');
+  const blocks: string[] = [];
+  for (const line of lines) {
+    const heading3 = line.startsWith('### ');
+    const heading2 = !heading3 && line.startsWith('## ');
+    const working = heading3
+      ? line.slice(4)
+      : heading2
+        ? line.slice(3)
+        : line;
+    const linked = applyInlineMarkdownHtml(linkify(working));
+    if (heading2) {
+      blocks.push(`<div class="loc-sec-title">${linked}</div>`);
+    } else if (heading3) {
+      blocks.push(`<div class="loc-sec-subtitle">${linked}</div>`);
+    } else if (working.trim().length > 0) {
+      blocks.push(`<p>${linked}</p>`);
+    } else {
+      blocks.push('<br />');
+    }
+  }
+  return blocks.join('\n');
+}
+
+/** Layout aligned with the in-app creature type detail (infobox + quote + sections). */
+function htmlForCreatureTypeRecord(
+  data: Record<string, unknown>,
+  indexById: Map<string, CreatureIndexEntry>,
+  recordJsonExists?: (recordType: string, recordId: string) => boolean,
+  resolveRecordName?: (recordType: string, recordId: string) => string | null,
+): string {
+  const linkifyBlob = (raw: string): string => {
+    if (!recordJsonExists || raw.length === 0) return raw;
+    return enrichWithRecordLinks(raw, recordJsonExists);
+  };
+
+  const name =
+    (typeof data.name === 'string' && data.name.trim()) ||
+    (typeof data.id === 'string' && data.id) ||
+    'Creature';
+
+  const pawSvg = creatureTypeIconSvg('creature-pin');
+
+  const classificationRows: { label: string; value: string; href?: string }[] =
+    [];
+  const detailRows: { label: string; value: string; href?: string }[] = [];
+
+  const parentRaw = data.parentCreatureTypeId;
+  const parentId =
+    typeof parentRaw === 'string' && parentRaw.trim().length > 0
+      ? parentRaw.trim()
+      : '';
+  if (parentId.length > 0 && indexById.has(parentId)) {
+    const direct = indexById.get(parentId)!;
+    let root = direct;
+    while (
+      root.parentCreatureTypeId &&
+      indexById.has(root.parentCreatureTypeId)
+    ) {
+      root = indexById.get(root.parentCreatureTypeId)!;
+    }
+    const directIsTopLevel =
+      !direct.parentCreatureTypeId ||
+      direct.parentCreatureTypeId.trim().length === 0;
+
+    if (directIsTopLevel) {
+      classificationRows.push({
+        label: 'Creature type',
+        value: direct.name,
+        href: creatureTypeHref(direct.id),
+      });
+    } else {
+      classificationRows.push({
+        label: 'Creature type',
+        value: root.name,
+        href: creatureTypeHref(root.id),
+      });
+      classificationRows.push({
+        label: 'Creature subtype',
+        value: direct.name,
+        href: creatureTypeHref(direct.id),
+      });
+    }
+  }
+
+  const sizeLabel = displayCreatureSize(data.size);
+  if (sizeLabel.length > 0) {
+    classificationRows.push({ label: 'Size', value: sizeLabel });
+  }
+
+  const movementPace = movementPaceFromNormalSpeed(data.movement);
+  if (movementPace) {
+    detailRows.push({ label: 'Movement', value: movementPace });
+  }
+
+  const sensesLabels = commaSeparatedNonemptyLabels(data.senses);
+  if (sensesLabels.length > 0) {
+    detailRows.push({ label: 'Senses', value: sensesLabels });
+  }
+
+  const languagesLine = formatCreatureLanguages(data, resolveRecordName);
+  if (languagesLine.length > 0) {
+    detailRows.push({ label: 'Languages', value: languagesLine });
+  }
+
+  const traitNames = formatCreatureTraitNames(data.traits);
+  if (traitNames.length > 0) {
+    detailRows.push({ label: 'Traits', value: traitNames });
+  }
+
+  function overviewRow(
+    label: string,
+    value: string,
+    href: string | undefined,
+  ): string {
+    const valueInner =
+      href && value.length > 0
+        ? `<a href="${escapeAttr(href)}">${escapeHtml(value)}</a>`
+        : escapeHtml(value);
+    return `<div class="loc-orow"><div class="loc-olabel">${escapeHtml(label)}</div><div class="loc-ovalue">${valueInner}</div></div>`;
+  }
+
+  let classificationHtml = '';
+  if (classificationRows.length > 0) {
+    const rows = classificationRows
+      .map((r) => overviewRow(r.label, r.value, r.href))
+      .join('');
+    classificationHtml = `<div class="loc-otable">${rows}</div>`;
+  }
+
+  let detailHtml = '';
+  if (detailRows.length > 0) {
+    const rows = detailRows
+      .map((r) => overviewRow(r.label, r.value, r.href))
+      .join('');
+    detailHtml = `<div class="loc-otable">${rows}</div>`;
+  }
+
+  const metaHtml =
+    classificationRows.length > 0 || detailRows.length > 0
+      ? `<div class="loc-meta creature-overview-meta">${classificationHtml}${
+          classificationRows.length > 0 && detailRows.length > 0
+            ? '<div class="creature-overview-meta-gap"></div>'
+            : ''
+        }${detailHtml}</div>`
+      : '';
+
+  const imageBlock = `<div class="loc-overview-media loc-overview-media--placeholder"><div class="loc-overview-ph-inner">${pawSvg}<div class="loc-overview-ph-title">Image Placeholder</div>${
+    name.trim().length > 0
+      ? `<div class="loc-overview-ph-sub">${escapeHtml(name)}</div>`
+      : ''
+  }</div></div>`;
+
+  const overviewInner = `
+    <div class="loc-overview-inner creature-overview-inner">
+      <header class="creature-overview-titleband">${escapeHtml(name)}</header>
+      ${imageBlock}
+      ${metaHtml}
+    </div>`;
+
+  const overview = `<aside class="loc-overview creature-overview" aria-label="Creature summary">${overviewInner}</aside>`;
+
+  const quote = typeof data.quote === 'string' ? data.quote.trim() : '';
+  const author = typeof data.author === 'string' ? data.author.trim() : '';
+
+  let quoteBlock = '';
+  if (quote.length > 0) {
+    const cite =
+      author.length > 0
+        ? `<footer class="creature-quote-author">${linkifyBlob(author)}</footer>`
+        : '';
+    quoteBlock = `<figure class="creature-quote"><blockquote class="creature-quote-text prose">"${linkifyBlob(quote)}"</blockquote>${cite}</figure>`;
+  }
+
+  const sectionBlocks = visibleCreatureSections(data.sections)
+    .map((sec) => {
+      const titleHtml =
+        sec.title.trim().length > 0
+          ? `<div class="loc-sec-title">${escapeHtml(sec.title)}</div>`
+          : '';
+      const bodyHtml =
+        sec.contents.trim().length > 0
+          ? `<div class="loc-sec-body prose">${formatCreatureSectionHtml(sec.contents, recordJsonExists)}</div>`
+          : '';
+      return `<section class="loc-sec">${titleHtml}${bodyHtml}</section>`;
+    })
+    .join('\n');
+
+  const pageLead = `<header class="loc-page-lead"><h1 class="loc-page-name">${escapeHtml(name)}</h1></header>`;
+  const bodyMain = `<div class="loc-body">${pageLead}${quoteBlock}${sectionBlocks}</div>`;
+
+  return `<div class="location-detail-page creature-detail-page"><div class="location-detail-grid">${overview}${bodyMain}</div></div>`;
 }
