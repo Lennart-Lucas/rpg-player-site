@@ -39,8 +39,15 @@ type SpellRow = SpellIndexRow & {
   classSlugs: string[];
 };
 
+type SpellListIndexRow = {
+  id: string;
+  name: string;
+  spellIds: string[];
+};
+
 const rpgExportDir = path.join(process.cwd(), 'public', 'rpg-export');
 const indexPath = path.join(rpgExportDir, 'spells-index.json');
+const spellListsIndexPath = path.join(rpgExportDir, 'spell-lists-index.json');
 const recordsDir = path.join(rpgExportDir, 'records', 'spell');
 
 function stringArray(raw: unknown): string[] {
@@ -116,8 +123,39 @@ function scanRecordsDir(): SpellIndexRow[] {
   return out;
 }
 
+function loadSpellListItems(): SpellListIndexRow[] {
+  try {
+    const raw = fs.readFileSync(spellListsIndexPath, 'utf8');
+    const parsed = JSON.parse(raw) as { items?: unknown[] };
+    if (!Array.isArray(parsed.items)) return [];
+    const out: SpellListIndexRow[] = [];
+    for (const entry of parsed.items) {
+      if (!entry || typeof entry !== 'object') continue;
+      const obj = entry as Record<string, unknown>;
+      const id = typeof obj.id === 'string' ? obj.id : '';
+      if (!id) continue;
+      out.push({
+        id,
+        name: typeof obj.name === 'string' ? obj.name : id,
+        spellIds: stringArray(obj.spellIds),
+      });
+    }
+    out.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 const baseItems = loadIndexItems();
 const indexItems = baseItems.length > 0 ? baseItems : scanRecordsDir();
+const spellListItems = loadSpellListItems();
+const spellListMembership: Record<string, string[]> = Object.fromEntries(
+  spellListItems.map((list) => [list.id, list.spellIds]),
+);
+const spellListMembershipJson = JSON.stringify(spellListMembership);
 
 const rows: SpellRow[] = indexItems.map((spell) => {
   const data = loadRecordData(spell.id);
@@ -275,7 +313,11 @@ const hasFilters = rows.length > 0;
         Manager.
       </p>
     ) : (
-      <div class="spell-page" data-spell-page>
+      <div
+        class="spell-page"
+        data-spell-page
+        data-spell-list-membership={spellListMembershipJson}
+      >
         {hasFilters && (
           <section class="spell-filters" aria-label="Spell filters">
             <div class="spell-filters-header">
@@ -303,6 +345,27 @@ const hasFilters = rows.length > 0;
                 </button>
               </div>
             </div>
+            {spellListItems.length > 0 && (
+              <div class="spell-filter-group">
+                <label
+                  class="spell-filter-label-text"
+                  for="spell-filter-list"
+                >
+                  Spell list
+                </label>
+                <select
+                  id="spell-filter-list"
+                  class="spell-filter-list"
+                  data-spell-filter-list
+                  aria-label="Spell list"
+                >
+                  <option value="">Any</option>
+                  {spellListItems.map((list) => (
+                    <option value={list.id}>{list.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             {levelOptions.length > 0 && (
               <div class="spell-filter-group">
                 <span class="spell-filter-label-text">Level</span>
@@ -479,6 +542,7 @@ const hasFilters = rows.length > 0;
                   <a
                     class="spell-card-link"
                     data-spell-card
+                    data-spell-id={row.id}
                     data-section={group.levelCode}
                     data-name={row.name}
                     data-level={row.level}
@@ -800,6 +864,25 @@ const hasFilters = rows.length > 0;
     font: inherit;
   }
   .spell-filter-search:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 1px;
+  }
+  .spell-filter-list {
+    appearance: none;
+    width: auto;
+    min-width: 180px;
+    max-width: 100%;
+    justify-self: start;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, #000 30%);
+    color: var(--fg);
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .spell-filter-list:focus-visible {
     outline: 2px solid var(--link);
     outline-offset: 1px;
   }

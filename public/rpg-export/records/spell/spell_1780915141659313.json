@@ -1,0 +1,44 @@
+{
+  "recordType": "spell",
+  "recordId": "spell_1780915141659313",
+  "data": {
+    "id": "spell_1780915141659313",
+    "name": "Chaotic Pavane",
+    "description": "Each creature in a 15-foot cube centered on a point youchoose within range must succeed on a Wisdom saving throw or be affected for the duration.\r<br>\nOn a failed save, the creature begins a painful, involuntary dance. While dancing, the creature:\r<br>\n* Can't take reactions or bonus actions.\r<br>\n* Must stand up if <a href=\"/records/condition/condition_prone\">Prone</a>, spending 5 feet of movement todo so.\r<br>\n* Must take the Dodge action.\r<br>\n* Must immediately use all its movement in a random direction. Roll 1d4 to determine the direction: 1—north, 2—east, 3—south, 4—west.\r<br>\nAt the end of each of its turns, the creature repeats the Wisdom saving throw, ending the effect on a success. If it did not move during its turn, it makes the saving throw with advantage. On a successful save, the creature falls <a href=\"/records/condition/condition_prone\">Prone</a> and the effect ends for it.",
+    "forHigherLevels": "The affected creature takes 1d10 <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Bludgeoning</span> damage whenever it moves due to the spell. This damage increases by 1d10 for each slot level above 4th.",
+    "level": "THIRD",
+    "school": "ENCHANTMENT",
+    "spellDuration": "ONE_MINUTE",
+    "spellRange": "THIRTY_FEET",
+    "concentration": true,
+    "castingTime": 1,
+    "castingType": "ACTION",
+    "reactionTrigger": "",
+    "components": [
+      "verbal",
+      "somatic",
+      "material"
+    ],
+    "materialDescription": "a bit of catgut",
+    "tagIds": [],
+    "classIds": [
+      "class_web_bard",
+      "class_web_sorcerer",
+      "class_web_wizard"
+    ],
+    "sourceRefs": [
+      {
+        "fileId": "resource_file_1777628291319408",
+        "pageNumber": 19
+      }
+    ],
+    "createdAt": "2026-06-08T12:39:01.659313",
+    "updatedAt": "2026-06-08T12:39:01.659313",
+    "classNames": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "tagNames": []
+  }
+}

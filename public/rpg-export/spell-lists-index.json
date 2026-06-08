@@ -1,0 +1,19 @@
+{
+  "items": [
+    {
+      "id": "spell_list_1777660147171461",
+      "name": "Lore of Excess",
+      "spellIds": [
+        "spell_1777646483229635",
+        "spell_1777645767691488",
+        "spell_1777646603458135",
+        "spell_web_charm_person",
+        "spell_web_charm_monster",
+        "spell_1780910842796549",
+        "spell_1780912430028405",
+        "spell_1780915141659313",
+        "spell_1780916602205594"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "recordType": "condition",
+  "recordId": "condition_prone",
+  "data": {
+    "id": "condition_prone",
+    "name": "Prone",
+    "icon": "",
+    "color": "",
+    "rarity": "COMMON",
+    "description": "You are lying on the ground.<br>\n* A prone creature’s only movement option is to crawl, unless it stands up and thereby ends the condition.\r<br>\n* The creature has disadvantage on attack rolls.\r<br>\n* An attack roll against the creature has advantage if the attacker is within 5 feet of the creature. Otherwise, the attack roll has disadvantage.",
+    "createdAt": "2026-04-29T18:43:16.241292",
+    "updatedAt": "2026-06-08T12:41:21.786750"
+  }
+}

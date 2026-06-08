@@ -7,10 +7,40 @@
       "parentLocationId": null
     },
     {
-      "id": "location_1778263569885481",
+      "id": "location_1778695068793652",
+      "name": "Dornwald",
+      "locationType": "other",
+      "parentLocationId": "location_1778265699952413"
+    },
+    {
+      "id": "location_1778664732556266",
       "name": "Velmorne",
       "locationType": "village",
       "parentLocationId": "location_1778265699952413"
+    },
+    {
+      "id": "location_1778664732556266_poi_gatheringPlaces_0",
+      "name": "Der Sommernacht",
+      "locationType": "landmark",
+      "parentLocationId": "location_1778664732556266"
+    },
+    {
+      "id": "location_1778664732556266_poi_otherLocations_1",
+      "name": "Der Weiße Hirsch",
+      "locationType": "building",
+      "parentLocationId": "location_1778664732556266"
+    },
+    {
+      "id": "location_1778664732556266_poi_placeOfWorshipSize_0",
+      "name": "Our Lady of The Sacred Vigil",
+      "locationType": "building",
+      "parentLocationId": "location_1778664732556266"
+    },
+    {
+      "id": "location_1778664732556266_poi_otherLocations_3",
+      "name": "The Roseveil House",
+      "locationType": "building",
+      "parentLocationId": "location_1778664732556266"
     }
   ]
 }

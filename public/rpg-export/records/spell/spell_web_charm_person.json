@@ -1,0 +1,38 @@
+{
+  "recordType": "spell",
+  "recordId": "spell_web_charm_person",
+  "data": {
+    "id": "spell_web_charm_person",
+    "name": "Charm Person",
+    "description": "You attempt to charm a humanoid you can see within range. It must make a Wisdom saving throw, and does so with advantage if you or your companions are fighting it. If it fails the saving throw, it is <a href=\"/records/condition/condition_charmed\">charmed</a> by you until the spell ends or until you or your companions do anything harmful to it. The <a href=\"/records/condition/condition_charmed\">charmed</a> creature regards you as a friendly acquaintance. When the spell ends, the creature knows it was <a href=\"/records/condition/condition_charmed\">charmed</a> by you.",
+    "forHigherLevels": "When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st. The creatures must be within 30 feet of each other when you target them.",
+    "level": "FIRST",
+    "school": "ENCHANTMENT",
+    "spellDuration": "ONE_HOUR",
+    "spellRange": "THIRTY_FEET",
+    "concentration": false,
+    "castingTime": 1,
+    "castingType": "ACTION",
+    "reactionTrigger": "",
+    "components": [
+      "verbal",
+      "somatic"
+    ],
+    "materialDescription": "",
+    "tagIds": [],
+    "classIds": [
+      "class_web_bard",
+      "class_web_druid",
+      "class_web_sorcerer"
+    ],
+    "sourceRefs": [],
+    "createdAt": "2026-04-29T18:43:19.319768",
+    "updatedAt": "2026-06-08T10:39:34.018534",
+    "classNames": [
+      "Bard",
+      "Druid",
+      "Sorcerer"
+    ],
+    "tagNames": []
+  }
+}

@@ -4,10 +4,11 @@ import path from 'node:path';
 import Layout from '../../../layouts/Layout.astro';
 import {
   conditionAccentHex,
-  conditionDescriptionPreview,
+  conditionCardPreviewText,
   conditionIconSvg,
   conditionRarityLabel,
   darkenHex,
+  plainTextFromDescriptionHtml,
   readableForeground,
 } from '../../../lib/conditionVisuals';
 
@@ -101,10 +102,8 @@ const rows: ConditionRow[] = baseItems.map((item) => {
       ? (data.description as string)
       : '';
   const accent = conditionAccentHex(item.color);
-  const descriptionPreview = conditionDescriptionPreview(
-    descriptionHtml,
-    600,
-  );
+  const descriptionPlain = plainTextFromDescriptionHtml(descriptionHtml);
+  const descriptionPreview = conditionCardPreviewText(descriptionHtml);
   const rarityLabel = conditionRarityLabel(item.rarity);
   return {
     ...item,
@@ -114,7 +113,7 @@ const rows: ConditionRow[] = baseItems.map((item) => {
     foreground: readableForeground(accent),
     iconSvg: conditionIconSvg(item.icon, item.name),
     rarityLabel,
-    searchText: [item.name, rarityLabel, descriptionPreview]
+    searchText: [item.name, rarityLabel, descriptionPlain]
       .filter((s) => s.length > 0)
       .join(' ')
       .toLowerCase(),
@@ -386,13 +385,14 @@ const rarityOptions = RARITY_CODES.filter((code) =>
   .condition-card-preview {
     position: relative;
     z-index: 1;
+    flex: 1 1 auto;
     color: var(--fg);
     display: -webkit-box;
     font-size: 0.84rem;
     line-height: 1.38;
     opacity: 0.9;
     white-space: pre-line;
-    -webkit-line-clamp: 9;
+    -webkit-line-clamp: 11;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }

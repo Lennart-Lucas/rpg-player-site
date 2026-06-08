@@ -7,8 +7,8 @@
     "icon": "fa_solidHeart",
     "color": "#e91e63",
     "rarity": "UNCOMMON",
-    "description": "The creature becomes fixated on a creature or object, which becomes a source of its obsession. Being Obsessed has the following effects on a creature:<br>\n* While the creature can see a source of its obsession, it can't target any creature or object with an attack, spell, or ability except for a source of its obsession.\r<br>\n* While the creature can see a source of its obsession, it can't cast spells or use abilities that target an area (such as the <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Fireball</span> spell) unless a source of its obsession is in that area.\r<br>\n* The creature can't willingly move away from a source of its obsession.",
+    "description": "The creature becomes fixated on a creature or object, which becomes a source of its obsession. Being Obsessed has the following effects on a creature:<br>\n* While the creature can see a source of its obsession, it can't target any creature or object with an attack, spell, or ability except for a source of its obsession.\r<br>\n* While the creature can see a source of its obsession, it can't cast spells or use abilities that target an area (such as the <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Fireball</span> spell) unless a source of its obsession is in that area.\r<br>\n* The creature can't willingly move away from a source of its obsession.<br>\nThis condition is treated as the <a href=\"/records/condition/condition_charmed\">Charmed</a> for the purpose of any effect that interacts with the Charmed condition, including immunities, resistances, and effects that end or prevent that condition.",
     "createdAt": "2026-05-01T11:55:25.948862",
-    "updatedAt": "2026-05-13T05:29:28.186116"
+    "updatedAt": "2026-06-08T11:20:21.897731"
   }
 }

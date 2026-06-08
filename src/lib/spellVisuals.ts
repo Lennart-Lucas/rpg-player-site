@@ -68,6 +68,7 @@ const SPELL_RANGE_LABELS: Record<string, string> = {
   FIVE_FEET: '5 feet',
   TEN_FEET: '10 feet',
   SELF_15_FEET: 'Self (15 feet)',
+  SELF_30_FEET: 'Self (30 feet)',
   THIRTY_FEET: '30 feet',
   FORTY_FEET: '40 feet',
   SIXTY_FEET: '60 feet',

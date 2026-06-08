@@ -1,6 +1,76 @@
 {
   "items": [
     {
+      "id": "spell_web_charm_person",
+      "name": "Charm Person",
+      "level": "FIRST",
+      "school": "ENCHANTMENT",
+      "concentration": false,
+      "castingType": "ACTION",
+      "tagNames": [],
+      "classNames": [
+        "Bard",
+        "Druid",
+        "Sorcerer"
+      ]
+    },
+    {
+      "id": "spell_1780916602205594",
+      "name": "Vicious Lash",
+      "level": "FIRST",
+      "school": "CONJURATION",
+      "concentration": false,
+      "castingType": "ACTION",
+      "tagNames": [],
+      "classNames": [
+        "Artificer",
+        "Bard",
+        "Warlock"
+      ]
+    },
+    {
+      "id": "spell_1780910842796549",
+      "name": "Acquiescence",
+      "level": "SECOND",
+      "school": "ENCHANTMENT",
+      "concentration": false,
+      "castingType": "ACTION",
+      "tagNames": [],
+      "classNames": [
+        "Bard",
+        "Sorcerer",
+        "Wizard"
+      ]
+    },
+    {
+      "id": "spell_1780915141659313",
+      "name": "Chaotic Pavane",
+      "level": "THIRD",
+      "school": "ENCHANTMENT",
+      "concentration": true,
+      "castingType": "ACTION",
+      "tagNames": [],
+      "classNames": [
+        "Bard",
+        "Sorcerer",
+        "Wizard"
+      ]
+    },
+    {
+      "id": "spell_web_charm_monster",
+      "name": "Charm Monster",
+      "level": "FOURTH",
+      "school": "ENCHANTMENT",
+      "concentration": false,
+      "castingType": "ACTION",
+      "tagNames": [],
+      "classNames": [
+        "Bard",
+        "Druid",
+        "Sorcerer"
+      ]
+    },
+    {
       "id": "spell_1777645767691488",
       "name": "Slashing Shards",
       "level": "FOURTH",
@@ -38,6 +108,20 @@
       "tagNames": [],
       "classNames": [
         "Bard",
+        "Warlock"
+      ]
+    },
+    {
+      "id": "spell_1780912430028405",
+      "name": "Cacophonic Call",
+      "level": "SEVENTH",
+      "school": "EVOCATION",
+      "concentration": false,
+      "castingType": "ACTION",
+      "tagNames": [],
+      "classNames": [
+        "Bard",
+        "Sorcerer",
         "Warlock"
       ]
     }

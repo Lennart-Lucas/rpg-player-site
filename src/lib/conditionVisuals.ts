@@ -125,19 +125,15 @@ export function conditionIconSvg(
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 }
 
-/**
- * Strip HTML tags from a description blob and clamp to `maxChars` for use as a
- * 2-line preview on a list card.
- */
-export function conditionDescriptionPreview(
-  html: string | null | undefined,
-  maxChars = 180,
-): string {
-  if (!html) return '';
-  const text = html
+const BULLET_LINE = /^\s*[-*]\s+(.*)$/;
+
+function stripDescriptionHtml(html: string): string {
+  return html
     .replace(/<style[\s\S]*?<\/style>/gi, ' ')
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<br\s*\/?>\s*/gi, '\n')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
     .replace(/<\/(p|div|li|h[1-6])>/gi, '\n')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
@@ -150,6 +146,60 @@ export function conditionDescriptionPreview(
     .replace(/[ \t]*\n[ \t]*/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/**
+ * Plain-text condition body with `*` / `-` lines shown as `•` bullets.
+ * Used for card previews and search indexing on the mechanics list page.
+ */
+export function plainTextFromDescriptionHtml(
+  html: string | null | undefined,
+): string {
+  const stripped = stripDescriptionHtml((html ?? '').trim());
+  if (!stripped) return '';
+
+  return stripped
+    .split('\n')
+    .map((line) => {
+      const normalized = line.replace(/\r/g, '').trim();
+      if (!normalized) return '';
+      const bullet = BULLET_LINE.exec(normalized);
+      if (bullet) return `• ${(bullet[1] ?? '').trim()}`;
+      return normalized;
+    })
+    .filter((line) => line.length > 0)
+    .join('\n')
+    .trim();
+}
+
+function truncatePlainText(text: string, maxChars: number): string {
   if (text.length <= maxChars) return text;
-  return `${text.slice(0, maxChars - 1).trimEnd()}…`;
+  const slice = text.slice(0, maxChars);
+  const lastBreak = slice.lastIndexOf('\n');
+  const cut =
+    lastBreak > maxChars * 0.45 ? slice.slice(0, lastBreak) : slice;
+  return `${cut.trimEnd()}…`;
+}
+
+/** Truncated plain-text preview for condition cards on `/mechanics/conditions`. */
+export function conditionCardPreviewText(
+  html: string | null | undefined,
+  maxChars = 520,
+): string {
+  const text = plainTextFromDescriptionHtml(html);
+  if (!text) return '';
+  return truncatePlainText(text, maxChars);
+}
+
+/**
+ * Strip HTML tags from a description blob and clamp to `maxChars` for use as a
+ * 2-line preview on a list card.
+ */
+export function conditionDescriptionPreview(
+  html: string | null | undefined,
+  maxChars = 180,
+): string {
+  const text = plainTextFromDescriptionHtml(html);
+  if (!text) return '';
+  return truncatePlainText(text, maxChars);
 }

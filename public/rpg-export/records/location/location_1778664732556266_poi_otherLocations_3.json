@@ -1,0 +1,24 @@
+{
+  "recordType": "location",
+  "recordId": "location_1778664732556266_poi_otherLocations_3",
+  "data": {
+    "id": "location_1778664732556266_poi_otherLocations_3",
+    "name": "The Roseveil House",
+    "locationType": "building",
+    "parentLocationId": "location_1778664732556266",
+    "aliases": [],
+    "imageUrl": "",
+    "quote": "",
+    "author": "",
+    "nationData": null,
+    "villageData": null,
+    "sections": [
+      {
+        "title": "",
+        "contents": "Originally established as a bathhouse serving pilgrims visiting the hot springs, The Roseveil House gradually evolved into Velmorne’s most infamous house of leisure. The estate is known for its perfumed baths, velvet-draped parlors, imported wines, and strict culture of discretion among its attendants. While technically tolerated by local Orzhovan authorities for decades, the establishment has recently become the subject of growing suspicion. Travelers speak of private midnight gatherings, strange incense drifting from shuttered windows, and guests emerging from the house appearing euphoric, exhausted, or emotionally altered for days afterward."
+      }
+    ],
+    "createdAt": "2026-05-13T11:32:12.556266",
+    "updatedAt": "2026-05-13T20:54:53.488739"
+  }
+}

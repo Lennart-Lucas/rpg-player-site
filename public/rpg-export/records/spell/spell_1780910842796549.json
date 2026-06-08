@@ -1,0 +1,44 @@
+{
+  "recordType": "spell",
+  "recordId": "spell_1780910842796549",
+  "data": {
+    "id": "spell_1780910842796549",
+    "name": "Acquiescence",
+    "description": "Choose one creature you can see within range. The target must succeed on a Wisdom saving throw or become <a href=\"/records/condition/condition_1777629503633736\">Drowzy</a> for the duration. At the end of each of its turns, the creature can repeat the saving throw, ending the effect on a success.",
+    "forHigherLevels": "You can target one additional creature for each slot level above 2nd.",
+    "level": "SECOND",
+    "school": "ENCHANTMENT",
+    "spellDuration": "ONE_MINUTE",
+    "spellRange": "THIRTY_FEET",
+    "concentration": false,
+    "castingTime": 1,
+    "castingType": "ACTION",
+    "reactionTrigger": "",
+    "components": [
+      "verbal",
+      "somatic",
+      "material"
+    ],
+    "materialDescription": "A pinch of fine sand,\rrose petals, or a cricket",
+    "tagIds": [],
+    "classIds": [
+      "class_web_bard",
+      "class_web_sorcerer",
+      "class_web_wizard"
+    ],
+    "sourceRefs": [
+      {
+        "fileId": "resource_file_1777628291319408",
+        "pageNumber": 19
+      }
+    ],
+    "createdAt": "2026-06-08T11:27:22.796549",
+    "updatedAt": "2026-06-08T11:27:22.796549",
+    "classNames": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "tagNames": []
+  }
+}

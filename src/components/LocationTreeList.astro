@@ -1,0 +1,192 @@
+---
+import LocationNode, { type LocationNodeData } from './LocationNode.astro';
+
+interface Props {
+  roots: LocationNodeData[];
+}
+
+const { roots } = Astro.props;
+
+const pinIconSvg =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>';
+const chevronIconSvg =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>';
+---
+
+{
+  roots.length > 0 && (
+    <ul class="loc-tree" data-loc-tree>
+      {roots.map((node) => (
+        <LocationNode
+          node={node}
+          pinIconSvg={pinIconSvg}
+          chevronIconSvg={chevronIconSvg}
+        />
+      ))}
+    </ul>
+  )
+}
+
+<script>
+  import { initLocationTree } from '../lib/locationTree';
+
+  function boot(): void {
+    document.querySelectorAll<HTMLElement>('[data-loc-tree]').forEach(
+      (root) => {
+        initLocationTree(root);
+      },
+    );
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+</script>
+
+<style is:global>
+  .loc-tree,
+  .loc-children {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .loc-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 0.5rem;
+  }
+  .loc-children {
+    margin-top: 8px;
+    padding-left: 32px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .loc-children::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 22px;
+    width: 1px;
+    background: color-mix(in srgb, var(--border) 80%, transparent);
+  }
+  .loc-children > .loc-item {
+    position: relative;
+  }
+  .loc-children > .loc-item::before {
+    content: '';
+    position: absolute;
+    left: -19px;
+    top: 26px;
+    width: 16px;
+    height: 1px;
+    background: color-mix(in srgb, var(--border) 80%, transparent);
+  }
+  .loc-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border-radius: 12px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition:
+      border-color 120ms ease,
+      transform 120ms ease,
+      box-shadow 120ms ease;
+  }
+  .loc-row:hover {
+    border-color: var(--link);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px color-mix(in srgb, #000 24%, transparent);
+  }
+  .loc-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: var(--fg);
+  }
+  .loc-card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--link) 14%, transparent);
+    color: var(--link);
+  }
+  .loc-card-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .loc-card-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+  }
+  .loc-card-title {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--fg);
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .loc-card-subtitle {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .loc-expand {
+    appearance: none;
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0 12px;
+    cursor: pointer;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      color 120ms ease,
+      background 120ms ease;
+  }
+  .loc-expand:hover {
+    background: color-mix(in srgb, var(--link) 12%, transparent);
+    color: var(--link);
+  }
+  .loc-expand-icon {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    transition: transform 160ms ease;
+  }
+  .loc-expand-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+  .loc-expand[aria-expanded='true'] .loc-expand-icon {
+    transform: rotate(180deg);
+  }
+  .loc-children[hidden] {
+    display: none !important;
+  }
+</style>

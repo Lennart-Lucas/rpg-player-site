@@ -1,0 +1,24 @@
+{
+  "recordType": "location",
+  "recordId": "location_1778664732556266_poi_otherLocations_1",
+  "data": {
+    "id": "location_1778664732556266_poi_otherLocations_1",
+    "name": "Der Weiße Hirsch",
+    "locationType": "building",
+    "parentLocationId": "location_1778664732556266",
+    "aliases": [],
+    "imageUrl": "",
+    "quote": "",
+    "author": "",
+    "nationData": null,
+    "villageData": null,
+    "sections": [
+      {
+        "title": "",
+        "contents": "Der Weiße Hirsch is Velmorne’s principal inn and coaching house, situated near the southern road entering the village. Known for its heavy pine-beam construction, venison stew, and strong herbal spirits, the inn caters primarily to lumber merchants, pilgrims, and travelers crossing the Dornwald. The establishment’s sign depicts a pale stag beneath a crescent moon, a symbol some local historians believe predates the Orzhovan occupation. In recent months the innkeeper has reportedly begun locking the doors well before midnight, citing disturbances from intoxicated revelers wandering the streets after festival gatherings."
+      }
+    ],
+    "createdAt": "2026-05-13T11:32:12.556266",
+    "updatedAt": "2026-05-13T20:53:38.007320"
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-05-13T04:01:43.140954Z",
+  "exportedAt": "2026-06-08T11:04:02.070831Z",
   "home": {
     "recordType": "campaign",
     "recordId": "campaign_1777543502362419"
@@ -15,11 +15,27 @@
     },
     {
       "recordType": "location",
-      "recordId": "location_1778263569885481"
+      "recordId": "location_1778664732556266_poi_placeOfWorshipSize_0"
     },
     {
-      "recordType": "condition",
-      "recordId": "condition_1777630830518826"
+      "recordType": "location",
+      "recordId": "location_1778664732556266_poi_otherLocations_1"
+    },
+    {
+      "recordType": "location",
+      "recordId": "location_1778664732556266_poi_gatheringPlaces_0"
+    },
+    {
+      "recordType": "location",
+      "recordId": "location_1778664732556266_poi_otherLocations_3"
+    },
+    {
+      "recordType": "location",
+      "recordId": "location_1778664732556266"
+    },
+    {
+      "recordType": "location",
+      "recordId": "location_1778695068793652"
     },
     {
       "recordType": "condition",
@@ -28,6 +44,22 @@
     {
       "recordType": "condition",
       "recordId": "condition_1777629325948862"
+    },
+    {
+      "recordType": "condition",
+      "recordId": "condition_1777630830518826"
+    },
+    {
+      "recordType": "condition",
+      "recordId": "condition_1777629503633736"
+    },
+    {
+      "recordType": "condition",
+      "recordId": "condition_dazed"
+    },
+    {
+      "recordType": "condition",
+      "recordId": "condition_prone"
     },
     {
       "recordType": "item",
@@ -44,6 +76,30 @@
     {
       "recordType": "spell",
       "recordId": "spell_1777645767691488"
+    },
+    {
+      "recordType": "spell",
+      "recordId": "spell_web_charm_monster"
+    },
+    {
+      "recordType": "spell",
+      "recordId": "spell_web_charm_person"
+    },
+    {
+      "recordType": "spell",
+      "recordId": "spell_1780910842796549"
+    },
+    {
+      "recordType": "spell",
+      "recordId": "spell_1780912430028405"
+    },
+    {
+      "recordType": "spell",
+      "recordId": "spell_1780915141659313"
+    },
+    {
+      "recordType": "spell",
+      "recordId": "spell_1780916602205594"
     }
   ]
 }

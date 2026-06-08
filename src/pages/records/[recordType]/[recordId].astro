@@ -2,7 +2,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Layout from '../../../layouts/Layout.astro';
-import { htmlForRecord } from '../../../lib/recordRender';
+import LocationTreeList from '../../../components/LocationTreeList.astro';
+import type { LocationNodeData } from '../../../components/LocationNode.astro';
+import {
+  htmlForRecord,
+  type LocationIndexEntry,
+} from '../../../lib/recordRender';
+import { applyInlineMarkdownHtml, formatCardBodyHtml } from '../../../lib/cardBodyHtml';
 import {
   conditionAccentHex,
   conditionIconSvg,
@@ -25,15 +31,8 @@ import {
   spellSchoolIconSvg,
 } from '../../../lib/spellVisuals';
 
-type LocationIndexItem = {
-  id: string;
-  name: string;
-  locationType: string;
-  parentLocationId: string | null;
-};
-
 type LocationTreeNode = {
-  item: LocationIndexItem;
+  item: LocationIndexEntry;
   children: LocationTreeNode[];
 };
 
@@ -77,14 +76,6 @@ function displayLocationType(code: string): string {
   return locationTypeLabels[code] ?? code;
 }
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 function stringArray(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -92,7 +83,7 @@ function stringArray(raw: unknown): string[] {
     .filter((v) => v.length > 0);
 }
 
-function loadLocationIndex(): LocationIndexItem[] {
+function loadLocationIndex(): LocationIndexEntry[] {
   const indexPath = path.join(
     process.cwd(),
     'public',
@@ -101,7 +92,7 @@ function loadLocationIndex(): LocationIndexItem[] {
   );
   try {
     const raw = fs.readFileSync(indexPath, 'utf8');
-    const parsed = JSON.parse(raw) as { items?: LocationIndexItem[] };
+    const parsed = JSON.parse(raw) as { items?: LocationIndexEntry[] };
     if (!Array.isArray(parsed.items)) return [];
     return parsed.items.filter(
       (i) =>
@@ -116,11 +107,11 @@ function loadLocationIndex(): LocationIndexItem[] {
 }
 
 function buildDescendantTree(
-  items: LocationIndexItem[],
+  items: LocationIndexEntry[],
   rootId: string,
 ): LocationTreeNode[] {
   const ids = new Set(items.map((r) => r.id));
-  const byParent = new Map<string | null, LocationIndexItem[]>();
+  const byParent = new Map<string | null, LocationIndexEntry[]>();
   for (const row of items) {
     const p =
       typeof row.parentLocationId === 'string' &&
@@ -144,17 +135,34 @@ function buildDescendantTree(
   return walk(rootId);
 }
 
-function renderLocationTree(nodes: LocationTreeNode[]): string {
-  if (nodes.length === 0) return '';
-  const lis = nodes
-    .map((n) => {
-      const href = `/records/location/${encodeURIComponent(n.item.id)}/`;
-      const typeLabel = displayLocationType(n.item.locationType);
-      const nested = renderLocationTree(n.children);
-      return `<li><a href="${escapeHtml(href)}">${escapeHtml(n.item.name)}</a> <span class="meta">(${escapeHtml(typeLabel)})</span>${nested}</li>`;
-    })
-    .join('');
-  return `<ul class="location-tree">${lis}</ul>`;
+function subtitleFor(
+  item: LocationIndexEntry,
+  byId: Map<string, LocationIndexEntry>,
+): string {
+  const type = displayLocationType(item.locationType);
+  const parentId = item.parentLocationId;
+  if (
+    parentId &&
+    typeof parentId === 'string' &&
+    parentId.trim().length > 0 &&
+    byId.has(parentId.trim())
+  ) {
+    return `${type} \u00b7 in ${byId.get(parentId.trim())!.name}`;
+  }
+  return type;
+}
+
+function toLocationNodeDataList(
+  nodes: LocationTreeNode[],
+  byId: Map<string, LocationIndexEntry>,
+): LocationNodeData[] {
+  return nodes.map((n) => ({
+    id: n.item.id,
+    name: n.item.name,
+    href: `/records/location/${encodeURIComponent(n.item.id)}/`,
+    subtitle: subtitleFor(n.item, byId),
+    children: toLocationNodeDataList(n.children, byId),
+  }));
 }
 
 const { recordType, recordId } = Astro.params;
@@ -174,23 +182,51 @@ if (!fs.existsSync(file)) {
 const payload = JSON.parse(fs.readFileSync(file, 'utf8')) as {
   data: Record<string, unknown>;
 };
+
+let locationIndexItems: LocationIndexEntry[] = [];
+let locationIndexById: Map<string, LocationIndexEntry> | undefined;
+if (recordType === 'location') {
+  locationIndexItems = loadLocationIndex();
+  locationIndexById = new Map(locationIndexItems.map((i) => [i.id, i]));
+}
+
+function playerSiteRecordJsonExists(
+  recordType: string,
+  recordId: string,
+): boolean {
+  if (!/^[a-zA-Z0-9_-]+$/.test(recordType)) return false;
+  if (!/^[a-zA-Z0-9_-]+$/.test(recordId)) return false;
+  const p = path.join(
+    process.cwd(),
+    'public',
+    'rpg-export',
+    'records',
+    recordType,
+    `${recordId}.json`,
+  );
+  return fs.existsSync(p);
+}
+
 const isCondition = recordType === 'condition';
 const isItem = recordType === 'item';
 const isSpell = recordType === 'spell';
 const body =
   isCondition || isItem || isSpell
     ? ''
-    : htmlForRecord(recordType!, payload.data);
+    : htmlForRecord(recordType!, payload.data, {
+        locationIndexById,
+        recordJsonExists: playerSiteRecordJsonExists,
+      });
 const title =
   (typeof payload.data.name === 'string' && payload.data.name) ||
   (typeof payload.data.title === 'string' && payload.data.title) ||
   recordId!;
 
-let childrenHtml = '';
-if (recordType === 'location' && typeof recordId === 'string') {
-  const subtree = buildDescendantTree(loadLocationIndex(), recordId);
+let childLocationRoots: LocationNodeData[] = [];
+if (recordType === 'location' && typeof recordId === 'string' && locationIndexById) {
+  const subtree = buildDescendantTree(locationIndexItems, recordId);
   if (subtree.length > 0) {
-    childrenHtml = renderLocationTree(subtree);
+    childLocationRoots = toLocationNodeDataList(subtree, locationIndexById);
   }
 }
 
@@ -218,7 +254,7 @@ if (isCondition) {
     fg: readableForeground(accent),
     rarityLabel: conditionRarityLabel(rarityRaw),
     iconSvg: conditionIconSvg(iconRaw, nameRaw),
-    descriptionHtml,
+    descriptionHtml: formatCardBodyHtml(descriptionHtml),
     displayName: nameRaw.length > 0 ? nameRaw : 'Condition',
   };
 }
@@ -316,10 +352,17 @@ if (isSpell) {
       concentration: data.concentration === true,
     }),
     componentsText: spellComponentsLine(components, materialDescription),
-    descriptionHtml:
+    descriptionHtml: formatCardBodyHtml(
       typeof data.description === 'string' ? data.description : '',
-    higherLevelsHtml:
-      typeof data.forHigherLevels === 'string' ? data.forHigherLevels : '',
+    ),
+    higherLevelsHtml: (() => {
+      const higher =
+        typeof data.forHigherLevels === 'string'
+          ? data.forHigherLevels.trim()
+          : '';
+      if (!higher) return '';
+      return `<strong>At Higher Levels:</strong> ${applyInlineMarkdownHtml(higher)}`;
+    })(),
     classNames,
   };
 }
@@ -458,10 +501,10 @@ if (isSpell) {
             set:html={spellView.descriptionHtml}
           />
           {spellView.higherLevelsHtml && (
-            <p class="spell-higher-levels prose">
-              <strong>At Higher Levels:</strong>{' '}
-              <span set:html={spellView.higherLevelsHtml} />
-            </p>
+            <p
+              class="spell-higher-levels prose"
+              set:html={spellView.higherLevelsHtml}
+            />
           )}
         </div>
         {spellView.classNames.length > 0 && (
@@ -491,23 +534,275 @@ if (isSpell) {
     )
   }
   {
-    childrenHtml && (
-      <section class="block">
-        <h2>Child locations</h2>
-        <div class="prose" set:html={childrenHtml} />
+    childLocationRoots.length > 0 && (
+      <section class="detail-outlined">
+        <div class="detail-outlined-tab">Child locations</div>
+        <div class="detail-outlined-body">
+          <LocationTreeList roots={childLocationRoots} />
+        </div>
       </section>
     )
   }
 </Layout>
 
 <style is:global>
-  .location-tree {
-    list-style: disc;
-    padding-left: 1.25rem;
-    margin: 0.5rem 0 0;
+  /* Location detail (mirrors app overview + flowing body) */
+  .location-detail-page {
+    --loc-outline: var(--border);
+    --loc-surface-low: rgba(255, 255, 255, 0.04);
+    --loc-surface-high: rgba(255, 255, 255, 0.07);
+    --loc-surface-dim: rgba(255, 255, 255, 0.055);
+    --loc-label-bg: rgba(255, 255, 255, 0.08);
+    --loc-value-bg: rgba(255, 255, 255, 0.02);
   }
-  .location-tree .location-tree {
+  .location-detail-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .loc-body {
+    min-width: 0;
+  }
+  .loc-page-lead {
+    margin: 0 0 0.65rem;
+    text-align: start;
+  }
+  .loc-page-name {
+    margin: 0;
+    font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--fg);
+    letter-spacing: -0.02em;
+  }
+  @media (min-width: 540px) {
+    .location-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr min(320px, 34%);
+      gap: 0 1rem;
+      align-items: start;
+    }
+    .loc-body {
+      grid-column: 1;
+      grid-row: 1;
+      min-width: 0;
+    }
+    .loc-overview {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+  .loc-overview-inner {
+    box-sizing: border-box;
+    background: var(--loc-surface-low);
+    border: 1px solid var(--loc-outline);
+    border-radius: 10px;
+    padding: 0.65rem;
+  }
+  .loc-overview-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.35rem 0.35rem 0.65rem;
+  }
+  .loc-overview-icon {
+    flex: 0 0 auto;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--loc-outline);
+    background: var(--loc-surface-high);
+    color: var(--muted);
+  }
+  .loc-pin {
+    width: 1.35rem;
+    height: 1.35rem;
+    display: block;
+  }
+  .loc-overview-titles {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .loc-overview-name {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--fg);
+  }
+  .loc-overview-aliases {
+    margin: 0.25rem 0 0;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: var(--muted);
+  }
+  .loc-overview-media {
+    height: 190px;
+    border-top: 1px solid color-mix(in srgb, var(--loc-outline) 70%, transparent);
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--loc-outline) 70%, transparent);
+    background: rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  .loc-overview-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .loc-overview-media--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .loc-overview-ph-inner {
+    text-align: center;
+    color: var(--muted);
+    padding: 0.5rem;
+  }
+  .loc-overview-ph-inner .loc-pin {
+    margin: 0 auto 0.35rem;
+    opacity: 0.85;
+  }
+  .loc-overview-ph-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .loc-overview-ph-sub {
+    margin-top: 0.2rem;
+    font-size: 0.8rem;
+    max-width: 16rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .loc-meta {
     margin-top: 0.35rem;
+    border: 1px solid var(--loc-outline);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--loc-surface-high);
+  }
+  .loc-band {
+    background: var(--loc-surface-dim);
+  }
+  .loc-band--divider {
+    border-top: 1px solid var(--loc-outline);
+  }
+  .loc-band-inner {
+    padding: 0.65rem 0.75rem 0.5rem;
+  }
+  .loc-band-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fg);
+  }
+  .loc-band .loc-band-inner {
+    border-bottom: 1px solid var(--loc-outline);
+  }
+  .loc-otable {
+    background: var(--loc-value-bg);
+  }
+  .loc-orow {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: stretch;
+  }
+  .loc-orow + .loc-orow {
+    border-top: 1px solid var(--loc-outline);
+  }
+  .loc-olabel {
+    background: var(--loc-label-bg);
+    padding: 0.45rem 0.6rem;
+    text-align: right;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--link);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .loc-ovalue {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+  }
+  .loc-ovalue a {
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .loc-quote {
+    margin: 0 0 0.75rem;
+    padding: 0;
+    border: none;
+  }
+  .loc-quote-text {
+    margin: 0;
+    padding: 0.35rem 0 0.35rem 0.85rem;
+    border-left: 3px solid var(--link);
+    font-style: italic;
+    color: color-mix(in srgb, var(--fg) 92%, var(--muted));
+  }
+  .loc-quote-author {
+    margin: 0.4rem 0 0;
+    padding-left: 0.85rem;
+    font-size: 0.88rem;
+    font-style: normal;
+    color: var(--muted);
+  }
+  .loc-sec {
+    padding: 0.35rem 0 0.5rem;
+    margin-bottom: 0.15rem;
+  }
+  .loc-sec-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: var(--fg);
+  }
+  .loc-sec-body {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+  .loc-download {
+    margin-top: 1rem;
+  }
+  .loc-download-h {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .detail-outlined {
+    position: relative;
+    margin-top: 1.35rem;
+    padding-top: 0.5rem;
+  }
+  .detail-outlined-tab {
+    display: inline-block;
+    margin-left: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--fg);
+  }
+  .detail-outlined-body {
+    margin-top: 0.2rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 0.85rem;
+    background: rgba(255, 255, 255, 0.03);
   }
 
   .condition-card {
@@ -582,6 +877,16 @@ if (isSpell) {
   }
   .condition-description :last-child {
     margin-bottom: 0;
+  }
+  .condition-description :global(p) {
+    margin: 0 0 0.5rem;
+  }
+  .condition-description :global(.card-body-list) {
+    margin: 0 0 0.5rem;
+    padding-left: 1.25rem;
+  }
+  .condition-description :global(li) {
+    margin: 0.2rem 0;
   }
 
   .item-card-detail {

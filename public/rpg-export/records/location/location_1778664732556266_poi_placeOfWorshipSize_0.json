@@ -1,0 +1,24 @@
+{
+  "recordType": "location",
+  "recordId": "location_1778664732556266_poi_placeOfWorshipSize_0",
+  "data": {
+    "id": "location_1778664732556266_poi_placeOfWorshipSize_0",
+    "name": "Our Lady of The Sacred Vigil",
+    "locationType": "building",
+    "parentLocationId": "location_1778664732556266",
+    "aliases": [],
+    "imageUrl": "",
+    "quote": "",
+    "author": "",
+    "nationData": null,
+    "villageData": null,
+    "sections": [
+      {
+        "title": "",
+        "contents": "Built atop the sealed remains of Velmorne’s ancient spring sanctuary, Our Lady of the Sacred Vigil serves as both chapel and symbol of Orzhovan authority within the region. The structure is austere even by <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Althanian</span> standards: dark stone walls, narrow stained-glass windows, and a squat bell tower overlooking the village square. Beneath the chapel lies an older crypt foundation incorporated from the previous pagan site, though access to the lower chambers has long been restricted by the clergy. Villagers commonly attend services out of obligation, but many regard the chapel with a mixture of reverence and unease."
+      }
+    ],
+    "createdAt": "2026-05-13T11:32:12.556266",
+    "updatedAt": "2026-05-13T20:52:04.174315"
+  }
+}

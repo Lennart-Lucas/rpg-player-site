@@ -1,0 +1,19 @@
+{
+  "recordType": "location",
+  "recordId": "location_1778695068793652",
+  "data": {
+    "id": "location_1778695068793652",
+    "name": "Dornwald",
+    "locationType": "other",
+    "parentLocationId": "location_1778265699952413",
+    "aliases": [],
+    "imageUrl": "",
+    "quote": "",
+    "author": "",
+    "nationData": null,
+    "villageData": null,
+    "sections": [],
+    "createdAt": "2026-05-13T19:57:48.793652",
+    "updatedAt": "2026-05-13T21:06:12.696043"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "recordType": "condition",
+  "recordId": "condition_1777629503633736",
+  "data": {
+    "id": "condition_1777629503633736",
+    "name": "Drowzy",
+    "icon": "fa_bed",
+    "color": "#43a047",
+    "rarity": "UNCOMMON",
+    "description": "This condition brings a creature to the brink of falling asleep. Creatures immune to effects that would put them to sleep are immune to this condition. While a creature is drowsy, it isunder the following effects:\r<br>\n* It moves at half speed.\r<br>\n* It has disadvantage on attack rolls, ability checks, andDexterity saves.\r<br>\n* It can't concentrate.\r<br>\n* Attacks against it have advantage.\r<br>\n* The only spells it can cast are cantrips.",
+    "createdAt": "2026-05-01T11:58:23.633736",
+    "updatedAt": "2026-06-08T12:01:19.024053"
+  }
+}

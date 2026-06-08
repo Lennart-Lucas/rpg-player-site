@@ -1,0 +1,14 @@
+{
+  "recordType": "condition",
+  "recordId": "condition_dazed",
+  "data": {
+    "id": "condition_dazed",
+    "name": "Dazed",
+    "icon": "fa_solidFaceDizzy",
+    "color": "#9c27b0",
+    "rarity": "UNCOMMON",
+    "description": "A Dazed creature can’t take reactions and on its turn, it must choose whether it gets a move, an action, or a bonus action; it gets only one of the three.",
+    "createdAt": "2026-04-29T18:43:16.241292",
+    "updatedAt": "2026-06-08T12:23:40.477394"
+  }
+}

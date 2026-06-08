@@ -8,11 +8,32 @@
       "color": "#ff80ab"
     },
     {
+      "id": "condition_dazed",
+      "name": "Dazed",
+      "rarity": "UNCOMMON",
+      "icon": "fa_solidFaceDizzy",
+      "color": "#9c27b0"
+    },
+    {
+      "id": "condition_1777629503633736",
+      "name": "Drowzy",
+      "rarity": "UNCOMMON",
+      "icon": "fa_bed",
+      "color": "#43a047"
+    },
+    {
       "id": "condition_1777629325948862",
       "name": "Obsessed",
       "rarity": "UNCOMMON",
       "icon": "fa_solidHeart",
       "color": "#e91e63"
+    },
+    {
+      "id": "condition_prone",
+      "name": "Prone",
+      "rarity": "COMMON",
+      "icon": "",
+      "color": ""
     },
     {
       "id": "condition_1777630830518826",

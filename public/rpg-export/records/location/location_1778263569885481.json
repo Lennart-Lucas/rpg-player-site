@@ -12,13 +12,296 @@
     "author": "",
     "nationData": null,
     "villageData": {
-      "age": "Ancient. The village was established near to, or more than, a century ago.",
+      "age": "Old. The village was founded decades ago. Production has reached peak performance, with many adults having been born there.",
       "size": "Large. Up to 90 standing structures.",
-      "description": "Age: Ancient. The village was established near to, or more than, a century ago.\nSize: Large. Up to 90 standing structures."
+      "description": "Age: Old. The village was founded decades ago. Production has reached peak performance, with many adults having been born there.\nHardship Likelihood: Two Hardships. The village has gone through a couple of hardships.\nHardship Count: Two Count\nHardships: Inter-Community Conflict/Violence. Internal conflict split the village. Outcome: Catastrophic Losses.; Famine / Food Shortage. Production or food access failed for a time. Outcome: Moderate Losses.\nSize: Large. Up to 90 standing structures.\nCondition: Simple. Most buildings are organized and sturdy enough, though nothing is remarkable.\nEnvironment: Swamp. In or near stagnant waters.\nPopulation Density: Populous. There are enough people for the village to manage all tasks without difficulty.\nDemographics: Only Two. 60% primary race, 40% secondary race.\nDisposition: Hostile. Locals seem very unfriendly toward visitors.\nLaw Enforcement: Disorganized Rabble. Spur-of-the-moment mob response.\nLeadership: External Ruler. The village owes fealty to an outside ruler.\nPopulation Wealth: Average. Most have enough for a modest life.\nCrime: Little-to-None. Most villagers believe the village is totally safe.\nWorship Place Count: Small Count\nPlace Of Worship Size: Temple. A grand building with impressive features.; Altar. A small shrine or tiny shack devoted to the faith.\nGathering Place Count: Small Count\nGathering Places: Amphitheater. Outdoor space with stage and tiered seating.\nOther Location Count: Large Count\nOther Locations: Tanner/Taxidermist (B). Processes hides for practical or ornamental use.; Inn. Provides lodging, baths, and meals.; House of Leisure. Provides entertainment or relaxation.; Rare Libations and Fare (E). Provides rare food or drink.\nEvents: Love. Festivities around couples and family.\nPolitical Rumors: Missing Taxman. Taxes have not been collected for weeks.\nSuperstitions: Knowing full names enables curses; middle names are secret.\nGoings On: They're Mine. Two villagers compete for one heartthrob.\nOpportunities: Shady Doings. Strange symbols and signs suggest covert activity.\nRecent Harsh Weather: Heavy Precipitation. Rain or snow has caused flooding or snowbound homes.\nDanger Hazard Likelihood: Low. Danger or hazards are a rarity.\nDanger Type Count: Low Count\nDanger Type: Monster Prey. Larger monsters consider the village easy prey.\nSpecialty: Food or Drink. The village is known for a particular food or drink.\nResource: Livestock (Labor). Animals bred for ploughing, hauling, and war. Locations: stable or barn.\nHistory: Attacks. Members of the community were attacked by brigands or monsters.\n\nNotes:\nAge: Old. The village was founded decades ago. Production has reached peak performance, with many adults having been born there.\nHardship Likelihood: Two Hardships. The village has gone through a couple of hardships.\nHardship Count: Two Count\nHardships: Inter-Community Conflict/Violence. Internal conflict split the village. Outcome: Catastrophic Losses.; Famine / Food Shortage. Production or food access failed for a time. Outcome: Moderate Losses.\nSize: Large. Up to 90 standing structures.\nCondition: Simple. Most buildings are organized and sturdy enough, though nothing is remarkable.\nEnvironment: Swamp. In or near stagnant waters.\nPopulation Density: Populous. There are enough people for the village to manage all tasks without difficulty.\nDemographics: Only Two. 60% primary race, 40% secondary race.\nDisposition: Hostile. Locals seem very unfriendly toward visitors.\nLaw Enforcement: Disorganized Rabble. Spur-of-the-moment mob response.\nLeadership: External Ruler. The village owes fealty to an outside ruler.\nPopulation Wealth: Average. Most have enough for a modest life.\nCrime: Little-to-None. Most villagers believe the village is totally safe.\nWorship Place Count: Small Count\nPlace Of Worship Size: Temple. A grand building with impressive features.; Altar. A small shrine or tiny shack devoted to the faith.\nGathering Place Count: Small Count\nGathering Places: Amphitheater. Outdoor space with stage and tiered seating.\nOther Location Count: Large Count\nOther Locations: Tanner/Taxidermist (B). Processes hides for practical or ornamental use.; Inn. Provides lodging, baths, and meals.; House of Leisure. Provides entertainment or relaxation.; Rare Libations and Fare (E). Provides rare food or drink.\nEvents: Love. Festivities around couples and family.\nPolitical Rumors: Missing Taxman. Taxes have not been collected for weeks.\nSuperstitions: Knowing full names enables curses; middle names are secret.\nGoings On: They're Mine. Two villagers compete for one heartthrob.\nOpportunities: Shady Doings. Strange symbols and signs suggest covert activity.\nRecent Harsh Weather: Heavy Precipitation. Rain or snow has caused flooding or snowbound homes.\nDanger Hazard Likelihood: Low. Danger or hazards are a rarity.\nDanger Type Count: Low Count\nDanger Type: Monster Prey. Larger monsters consider the village easy prey.\nSpecialty: Food or Drink. The village is known for a particular food or drink.\nResource: Livestock (Labor). Animals bred for ploughing, hauling, and war. Locations: stable or barn.\nHistory: Attacks. Members of the community were attacked by brigands or monsters.\n\nNotes:\nAge: Ancient. The village was established near to, or more than, a century ago.\nSize: Large. Up to 90 standing structures."
     },
-    "description": "Velmorne is al rural village located in the forested eastern reaches of <a href=\"/records/location/location_1778265699952413\">Althania</a>, known for its fertile soil, natural springs, and relative isolation from the larger trade roads of the realm. The village is built around an ancient freshwater spring that has long served as both its primary water source and spiritual center.<br>\nVelmorne’s economy is sustained through hunting, forestry, small-scale agriculture, and local brewing. Though modest in size, the village has gained a quiet reputation for unusually rich harvests and vibrant seasonal festivals. Travelers’ accounts often describe the settlement as welcoming, warm, and strangely difficult to leave behind.<br>\nThe village is centered around the Chapel of the Sacred Spring, a centuries-old religious structure erected atop older ruins believed to predate the current faith. Fragments of weathered stone markers and local oral traditions suggest that the region once held significance as a site of fertility worship before the arrival of the modern Althanian church.<br>\nDespite its outward prosperity, Velmorne has periodically been associated with unsettling folklore concerning excessive revelry, disappearances, and strange behavioral changes among visitors and residents alike. These stories are largely dismissed by neighboring settlements as superstition born from the village’s remoteness and unusual customs.",
+    "description": "Velmorne is al rural village located in the forested eastern reaches of [[location/location_1778265699952413|Althania]], known for its fertile soil, natural springs, and relative isolation from the larger trade roads of the realm. The village is built around an ancient freshwater spring that has long served as both its primary water source and spiritual center.\nVelmorne’s economy is sustained through hunting, forestry, small-scale agriculture, and local brewing. Though modest in size, the village has gained a quiet reputation for unusually rich harvests and vibrant seasonal festivals. Travelers’ accounts often describe the settlement as welcoming, warm, and strangely difficult to leave behind.\nThe village is centered around the Chapel of the Sacred Spring, a centuries-old religious structure erected atop older ruins believed to predate the current faith. Fragments of weathered stone markers and local oral traditions suggest that the region once held significance as a site of fertility worship before the arrival of the modern Althanian church.\nDespite its outward prosperity, Velmorne has periodically been associated with unsettling folklore concerning excessive revelry, disappearances, and strange behavioral changes among visitors and residents alike. These stories are largely dismissed by neighboring settlements as superstition born from the village’s remoteness and unusual customs.",
     "sections": [],
     "createdAt": "2026-05-08T20:06:09.885481",
-    "updatedAt": "2026-05-12T15:07:11.664433"
+    "updatedAt": "2026-05-13T11:11:10.320610",
+    "generatorState": {
+      "generator": "village",
+      "version": 1,
+      "selections": {
+        "age": [
+          {
+            "entryKey": "old",
+            "isManual": true
+          }
+        ],
+        "hardshipLikelihood": [
+          {
+            "entryKey": "two",
+            "baseRoll": 10,
+            "resolvedRoll": 8,
+            "tableModifier": -2
+          }
+        ],
+        "hardshipCount": [
+          {
+            "entryKey": "twoCount",
+            "tableModifier": 0
+          }
+        ],
+        "hardships": [
+          {
+            "entryKey": "interCommunityConflict",
+            "baseRoll": 6,
+            "resolvedRoll": 6,
+            "tableModifier": 0,
+            "hardshipOutcomeEntryKey": "catastrophicLosses"
+          },
+          {
+            "entryKey": "famine",
+            "baseRoll": 4,
+            "resolvedRoll": 4,
+            "tableModifier": 0,
+            "hardshipOutcomeEntryKey": "moderateLosses"
+          }
+        ],
+        "size": [
+          {
+            "entryKey": "large",
+            "isManual": true
+          }
+        ],
+        "condition": [
+          {
+            "entryKey": "simple",
+            "baseRoll": 14,
+            "resolvedRoll": 14,
+            "tableModifier": 0
+          }
+        ],
+        "environment": [
+          {
+            "entryKey": "swamp",
+            "baseRoll": 6,
+            "resolvedRoll": 6,
+            "tableModifier": 0
+          }
+        ],
+        "populationDensity": [
+          {
+            "entryKey": "populous",
+            "baseRoll": 18,
+            "resolvedRoll": 9,
+            "tableModifier": -9
+          }
+        ],
+        "demographics": [
+          {
+            "entryKey": "onlyTwo",
+            "baseRoll": 10,
+            "resolvedRoll": 10,
+            "tableModifier": 0
+          }
+        ],
+        "disposition": [
+          {
+            "entryKey": "hostile",
+            "baseRoll": 4,
+            "resolvedRoll": 1,
+            "tableModifier": -5
+          }
+        ],
+        "lawEnforcement": [
+          {
+            "entryKey": "disorganizedRabble",
+            "baseRoll": 7,
+            "resolvedRoll": 7,
+            "tableModifier": 0
+          }
+        ],
+        "leadership": [
+          {
+            "entryKey": "externalRuler",
+            "baseRoll": 3,
+            "resolvedRoll": 3,
+            "tableModifier": 0
+          }
+        ],
+        "populationWealth": [
+          {
+            "entryKey": "average",
+            "baseRoll": 12,
+            "resolvedRoll": 12,
+            "tableModifier": 0
+          }
+        ],
+        "crime": [
+          {
+            "entryKey": "littleToNone",
+            "baseRoll": 18,
+            "resolvedRoll": 17,
+            "tableModifier": -1
+          }
+        ],
+        "worshipPlaceCount": [
+          {
+            "entryKey": "smallCount",
+            "tableModifier": 0,
+            "isManual": true
+          }
+        ],
+        "placeOfWorshipSize": [
+          {
+            "entryKey": "temple",
+            "baseRoll": 14,
+            "resolvedRoll": 14,
+            "tableModifier": 0,
+            "worshipFervencyEntryKey": "fervent",
+            "worshipAlignmentEntryKey": "evil",
+            "isManual": true
+          },
+          {
+            "entryKey": "altar",
+            "baseRoll": 6,
+            "resolvedRoll": 6,
+            "tableModifier": 0,
+            "worshipFervencyEntryKey": "fervent",
+            "worshipAlignmentEntryKey": "good",
+            "isManual": true
+          }
+        ],
+        "gatheringPlaceCount": [
+          {
+            "entryKey": "smallCount",
+            "tableModifier": 0
+          }
+        ],
+        "gatheringPlaces": [
+          {
+            "entryKey": "amphitheater",
+            "baseRoll": 1,
+            "resolvedRoll": 1,
+            "tableModifier": 0
+          }
+        ],
+        "otherLocationCount": [
+          {
+            "entryKey": "largeCount",
+            "tableModifier": 0,
+            "isManual": true
+          }
+        ],
+        "otherLocations": [
+          {
+            "entryKey": "tannerTaxidermist",
+            "baseRoll": 32,
+            "resolvedRoll": 32,
+            "tableModifier": 0,
+            "isManual": true
+          },
+          {
+            "entryKey": "inn",
+            "isManual": true
+          },
+          {
+            "entryKey": "houseOfLeisure",
+            "isManual": true
+          },
+          {
+            "entryKey": "rareLibationsFare",
+            "isManual": true
+          }
+        ],
+        "events": [
+          {
+            "entryKey": "love",
+            "baseRoll": 5,
+            "resolvedRoll": 5,
+            "tableModifier": 0
+          }
+        ],
+        "politicalRumors": [
+          {
+            "entryKey": "missingTaxman",
+            "baseRoll": 6,
+            "resolvedRoll": 6,
+            "tableModifier": 0
+          }
+        ],
+        "superstitions": [
+          {
+            "entryKey": "fullNameCurse",
+            "baseRoll": 10,
+            "resolvedRoll": 10,
+            "tableModifier": 0
+          }
+        ],
+        "goingsOn": [
+          {
+            "entryKey": "theyreMine",
+            "baseRoll": 5,
+            "resolvedRoll": 5,
+            "tableModifier": 0
+          }
+        ],
+        "opportunities": [
+          {
+            "entryKey": "shadyDoings",
+            "baseRoll": 6,
+            "resolvedRoll": 6,
+            "tableModifier": 0
+          }
+        ],
+        "recentHarshWeather": [
+          {
+            "entryKey": "heavyPrecipitation",
+            "baseRoll": 2,
+            "resolvedRoll": 2,
+            "tableModifier": 0
+          }
+        ],
+        "dangerHazardLikelihood": [
+          {
+            "entryKey": "low",
+            "baseRoll": 4,
+            "resolvedRoll": 4,
+            "tableModifier": 0
+          }
+        ],
+        "dangerTypeCount": [
+          {
+            "entryKey": "lowCount",
+            "tableModifier": 0
+          }
+        ],
+        "dangerType": [
+          {
+            "entryKey": "monsterPrey",
+            "baseRoll": 6,
+            "resolvedRoll": 6,
+            "tableModifier": 0
+          }
+        ],
+        "specialty": [
+          {
+            "entryKey": "foodOrDrink",
+            "baseRoll": 2,
+            "resolvedRoll": 2,
+            "tableModifier": 0
+          }
+        ],
+        "resource": [
+          {
+            "entryKey": "livestockLabor",
+            "baseRoll": 5,
+            "resolvedRoll": 5,
+            "tableModifier": 0
+          }
+        ],
+        "history": [
+          {
+            "entryKey": "attacks",
+            "baseRoll": 2,
+            "resolvedRoll": 2,
+            "tableModifier": 0
+          }
+        ]
+      }
+    }
   }
 }

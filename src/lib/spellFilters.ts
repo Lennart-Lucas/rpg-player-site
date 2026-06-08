@@ -18,7 +18,10 @@ export type SpellFilterState = {
   tags: Set<string>;
   classes: Set<string>;
   concentration: ConcentrationFilter;
+  spellListId: string | null;
 };
+
+export type SpellListMembership = Record<string, string[]>;
 
 const TAG_CLASS_QUERY_LIMIT = 16;
 
@@ -31,6 +34,7 @@ export function emptyFilterState(): SpellFilterState {
     tags: new Set(),
     classes: new Set(),
     concentration: 'any',
+    spellListId: null,
   };
 }
 
@@ -69,8 +73,15 @@ function clampConcentration(raw: string | null): ConcentrationFilter {
 
 export function readFilterStateFromSearch(
   search: string,
+  validSpellListIds?: Set<string>,
 ): SpellFilterState {
   const params = new URLSearchParams(search);
+  const rawList = (params.get('list') ?? '').trim();
+  const spellListId =
+    rawList.length > 0 &&
+    (validSpellListIds == null || validSpellListIds.has(rawList))
+      ? rawList
+      : null;
   return {
     search: (params.get('q') ?? '').trim(),
     levels: new Set(upperCsv(params.get('level'))),
@@ -79,6 +90,7 @@ export function readFilterStateFromSearch(
     tags: new Set(lowerCsv(params.get('tag'))),
     classes: new Set(lowerCsv(params.get('class'))),
     concentration: clampConcentration(params.get('conc')),
+    spellListId,
   };
 }
 
@@ -105,6 +117,9 @@ export function writeFilterStateToSearch(state: SpellFilterState): string {
   if (state.concentration !== 'any') {
     params.set('conc', state.concentration);
   }
+  if (state.spellListId != null && state.spellListId.length > 0) {
+    params.set('list', state.spellListId);
+  }
   return params.toString();
 }
 
@@ -116,12 +131,14 @@ export function hasActiveFilters(state: SpellFilterState): boolean {
     state.castingTypes.size > 0 ||
     state.tags.size > 0 ||
     state.classes.size > 0 ||
-    state.concentration !== 'any'
+    state.concentration !== 'any' ||
+    state.spellListId != null
   );
 }
 
 type CardSnapshot = {
   el: HTMLElement;
+  spellId: string;
   level: string;
   school: string;
   castingType: string;
@@ -136,6 +153,7 @@ function readCardSnapshot(el: HTMLElement): CardSnapshot {
   const classAttr = el.getAttribute('data-class-slugs') ?? '';
   return {
     el,
+    spellId: el.getAttribute('data-spell-id') ?? '',
     level: (el.getAttribute('data-level') ?? '').toUpperCase(),
     school: (el.getAttribute('data-school') ?? '').toUpperCase(),
     castingType: (el.getAttribute('data-casting-type') ?? '').toUpperCase(),
@@ -291,6 +309,37 @@ function syncSearchInput(
   if (input.value !== state.search) input.value = state.search;
 }
 
+function syncSpellListSelect(
+  root: HTMLElement,
+  state: SpellFilterState,
+): void {
+  const select = root.querySelector<HTMLSelectElement>(
+    '[data-spell-filter-list]',
+  );
+  if (!select) return;
+  const value = state.spellListId ?? '';
+  if (select.value !== value) select.value = value;
+}
+
+function readSpellListMembership(root: HTMLElement): Map<string, Set<string>> {
+  const raw = root.getAttribute('data-spell-list-membership');
+  if (raw == null || raw.trim().length === 0) return new Map();
+  try {
+    const parsed = JSON.parse(raw) as SpellListMembership;
+    const out = new Map<string, Set<string>>();
+    for (const [listId, spellIds] of Object.entries(parsed)) {
+      if (!Array.isArray(spellIds)) continue;
+      out.set(
+        listId,
+        new Set(spellIds.filter((id) => typeof id === 'string' && id.length > 0)),
+      );
+    }
+    return out;
+  } catch {
+    return new Map();
+  }
+}
+
 function syncUrl(state: SpellFilterState): void {
   const query = writeFilterStateToSearch(state);
   const next = query.length > 0 ? `?${query}` : window.location.pathname;
@@ -305,7 +354,12 @@ export function initSpellFilters(root: HTMLElement | null): void {
   if (cardEls.length === 0) return;
   const cards = cardEls.map(readCardSnapshot);
 
-  const state = readFilterStateFromSearch(window.location.search);
+  const spellListMembership = readSpellListMembership(root);
+  const validSpellListIds = new Set(spellListMembership.keys());
+  const state = readFilterStateFromSearch(
+    window.location.search,
+    validSpellListIds,
+  );
 
   const levelButtons = chipButtons(root, 'level');
   const schoolButtons = chipButtons(root, 'school');
@@ -322,7 +376,8 @@ export function initSpellFilters(root: HTMLElement | null): void {
     syncChipPressed(classButtons, state.classes);
     syncConcentrationChips(concButtons, state.concentration);
     syncSearchInput(root, state);
-    const visible = applyFilterState(root, cards, state);
+    syncSpellListSelect(root, state);
+    const visible = applyFilterState(root, cards, state, spellListMembership);
     syncResultCount(root, cards.length, visible, state);
     syncEmptyState(root, visible, cards.length);
     syncClearButton(root, state);
@@ -372,6 +427,18 @@ export function initSpellFilters(root: HTMLElement | null): void {
     });
   }
 
+  const listSelect = root.querySelector<HTMLSelectElement>(
+    '[data-spell-filter-list]',
+  );
+  if (listSelect) {
+    listSelect.addEventListener('change', () => {
+      const value = listSelect.value.trim();
+      state.spellListId =
+        value.length > 0 && validSpellListIds.has(value) ? value : null;
+      render();
+    });
+  }
+
   const clearBtn = root.querySelector<HTMLButtonElement>(
     '[data-spell-filter-clear]',
   );
@@ -384,6 +451,7 @@ export function initSpellFilters(root: HTMLElement | null): void {
       state.tags.clear();
       state.classes.clear();
       state.concentration = 'any';
+      state.spellListId = null;
       render();
     });
   }

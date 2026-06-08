@@ -1,0 +1,55 @@
+---
+import Self from './LocationNode.astro';
+
+export type LocationNodeData = {
+  id: string;
+  name: string;
+  href: string;
+  subtitle: string;
+  children: LocationNodeData[];
+};
+
+interface Props {
+  node: LocationNodeData;
+  pinIconSvg: string;
+  chevronIconSvg: string;
+}
+
+const { node, pinIconSvg, chevronIconSvg } = Astro.props;
+const hasChildren = node.children.length > 0;
+const childListId = `loc-children-${node.id}`;
+---
+<li class="loc-item">
+  <div class="loc-row">
+    <a class="loc-card" href={node.href}>
+      <span class="loc-card-icon" set:html={pinIconSvg} />
+      <span class="loc-card-body">
+        <span class="loc-card-title">{node.name}</span>
+        <span class="loc-card-subtitle">{node.subtitle}</span>
+      </span>
+    </a>
+    {hasChildren && (
+      <button
+        type="button"
+        class="loc-expand"
+        aria-expanded="false"
+        aria-controls={childListId}
+        aria-label={`Toggle children of ${node.name}`}
+        data-loc-expand
+      >
+        <span class="loc-expand-icon" set:html={chevronIconSvg} />
+      </button>
+    )}
+  </div>
+  {hasChildren && (
+    <ul class="loc-children" id={childListId} hidden>
+      {node.children.map((child) => (
+        <Self
+          node={child}
+          pinIconSvg={pinIconSvg}
+          chevronIconSvg={chevronIconSvg}
+        />
+      ))}
+    </ul>
+  )}
+</li>

@@ -1,0 +1,24 @@
+{
+  "recordType": "location",
+  "recordId": "location_1778664732556266_poi_gatheringPlaces_0",
+  "data": {
+    "id": "location_1778664732556266_poi_gatheringPlaces_0",
+    "name": "Der Sommernacht",
+    "locationType": "landmark",
+    "parentLocationId": "location_1778664732556266",
+    "aliases": [],
+    "imageUrl": "",
+    "quote": "",
+    "author": "",
+    "nationData": null,
+    "villageData": null,
+    "sections": [
+      {
+        "title": "",
+        "contents": "Der Sommernacht is a large communal dance hall located near the old market green and serves as the social heart of Velmorne during feast days and seasonal festivals. Lantern-lit rafters, carved wooden pillars, and an unusually polished dance floor have made it famous among nearby villages. Traditional music performed there often incorporates melodies believed to descend from pre-Orzhovan rites. Though once regarded as harmless local culture, recent celebrations at Der Sommernacht have grown increasingly excessive, with dancing reportedly continuing until dawn accompanied by ecstatic trances, masked processions, and unexplained disappearances into the surrounding woods."
+      }
+    ],
+    "createdAt": "2026-05-13T11:32:12.556266",
+    "updatedAt": "2026-05-13T20:54:07.548497"
+  }
+}

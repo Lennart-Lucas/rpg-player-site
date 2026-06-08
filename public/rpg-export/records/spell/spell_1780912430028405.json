@@ -1,0 +1,42 @@
+{
+  "recordType": "spell",
+  "recordId": "spell_1780912430028405",
+  "data": {
+    "id": "spell_1780912430028405",
+    "name": "Cacophonic Call",
+    "description": "You unleash an ululating scream that radiates from you in a 30-foot radius. The scream can be heard up to 1,000 feet away. Each creature of your choice in the area must make a Constitution or Wisdom saving throw (its choice).\r<br>\n**Successful Constitution Save.** The creature takes 4d8 <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Psychic</span> damage and is <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Frightened</span> of you until the start ofyour next turn. While <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Frightened</span> in this way, it can only cast spells of 1st level or lower.\r<br>\n**Successful Wisdom Save.** The creature takes 4d8 <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Thunder</span> damage and is <a href=\"/records/condition/condition_dazed\">Dazed</a> until the start of your next turn.\r<br>\n**Failed Save (Either Type).** The creature suffers both ofthe above effects.",
+    "forHigherLevels": "Both the <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Thunder</span> and <span class=\"unpublished-ref\" title=\"This note is not on the player site\">Psychic</span> damage is increases by 1d8 for each slot level above 7th.",
+    "level": "SEVENTH",
+    "school": "EVOCATION",
+    "spellDuration": "ONE_ROUND",
+    "spellRange": "SELF_30_FEET",
+    "concentration": false,
+    "castingTime": 1,
+    "castingType": "ACTION",
+    "reactionTrigger": "",
+    "components": [
+      "verbal"
+    ],
+    "materialDescription": "",
+    "tagIds": [],
+    "classIds": [
+      "class_web_bard",
+      "class_web_sorcerer",
+      "class_web_warlock"
+    ],
+    "sourceRefs": [
+      {
+        "fileId": "resource_file_1777628291319408",
+        "pageNumber": 19
+      }
+    ],
+    "createdAt": "2026-06-08T11:53:50.028405",
+    "updatedAt": "2026-06-08T11:59:55.049415",
+    "classNames": [
+      "Bard",
+      "Sorcerer",
+      "Warlock"
+    ],
+    "tagNames": []
+  }
+}

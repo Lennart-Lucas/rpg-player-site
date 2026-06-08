@@ -1,0 +1,313 @@
+{
+  "recordType": "location",
+  "recordId": "location_1778664732556266",
+  "data": {
+    "id": "location_1778664732556266",
+    "name": "Velmorne",
+    "locationType": "village",
+    "parentLocationId": "location_1778265699952413",
+    "aliases": [
+      "Eichenwacht"
+    ],
+    "imageUrl": "",
+    "quote": "",
+    "author": "",
+    "nationData": null,
+    "villageData": {
+      "age": "Ancient. The village was established near to, or more than, a century ago.",
+      "size": "Large. Up to 90 standing structures.",
+      "description": "Age: Ancient. The village was established near to, or more than, a century ago.<br>\nHardship Likelihood: One Hardship. The village has experienced one notable time of difficulty.<br>\nHardship Count: One Count<br>\nHardships: Plague. The community fell victim to disease. Outcome: Moderate Losses.<br>\nSize: Large. Up to 90 standing structures.<br>\nCondition: Simple. Most buildings are organized and sturdy enough, though nothing is remarkable.<br>\nEnvironment: Forest. Nestled among the trees.<br>\nPopulation Density: Populous. There are enough people for the village to manage all tasks without difficulty.<br>\nDemographics: Only One. 100% primary race.<br>\nDisposition: Neutral. Locals are standoffish but can be friendly once known.<br>\nLaw Enforcement: Disorganized Rabble. Spur-of-the-moment mob response.<br>\nLeadership: External Ruler. The village owes fealty to an outside ruler.<br>\nPopulation Wealth: Impoverished. Around half struggle for meager existence.<br>\nCrime: Uncommon. Crime is rare but noteworthy when it occurs.<br>\nWorship Place Count: Large Count<br>\nPlace Of Worship Size: Temple. A grand building with impressive features.; Altar. A small shrine or tiny shack devoted to the faith.<br>\nGathering Place Count: Large Count<br>\nGathering Places: Dance Hall. Venue for dances and festive events.<br>\nOther Location Count: Very Large Count<br>\nOther Locations: Tanner/Taxidermist (B). Processes hides for practical or ornamental use.; Inn. Provides lodging, baths, and meals.; Rare Libations and Fare (E). Provides rare food or drink.; House of Leisure. Provides entertainment or relaxation.<br>\nEvents: Local. Celebrates a major local event or hero.<br>\nPolitical Rumors: Missing Taxman. Taxes have not been collected for weeks.<br>\nSuperstitions: Well-wish coin value must match the value of the wish.<br>\nGoings On: They're Mine. Two villagers compete for one heartthrob.<br>\nOpportunities: Haunting. A spirit is tied to a place in the village.<br>\nRecent Harsh Weather: Thunderstorms or Blizzards. Frequent severe storms halt travel and work.<br>\nDanger Hazard Likelihood: Medium. Hazards are known but not universal experiences.<br>\nDanger Type Count: Medium Count<br>\nDanger Type: Unwanted Attention. Outsiders draw potentially dangerous notice.<br>\nSpecialty: Crafted Goods. The village is known for highly valued crafted items.<br>\nResource: Logging and Lumber. Trees are harvested and traded or worked into goods. Locations: logging camp, carpentry workshop.<br>\nHistory: Attacks. Members of the community were attacked by brigands or monsters."
+    },
+    "sections": [
+      {
+        "title": "",
+        "contents": "Eichenwacht or Velmorne is a large forest village in the southern interior of <a href=\"/records/location/location_1778265699952413\">Althania</a>, located along an old imperial road at the edge of the <a href=\"/records/location/location_1778695068793652\">Dornwald</a>. Built around a series of geothermal springs and surrounded by dense pine and alder forests, Velmorne has existed since before the Orzhovan consolidation of the region and is considered one of the oldest continuously inhabited settlements in the province. Though impoverished by modern Althanian standards, the village remains locally important for its lumber trade, woodcrafts, carved devotional figures, and preserved liquors distilled from forest berries and herbs.<br>\n<br>\nThe village is notable for its unusually large number of communal establishments relative to its population, including the dance hall <a href=\"/records/location/location_1778664732556266_poi_gatheringPlaces_0\">Der Sommernacht</a>, the bathhouse and leisure estate known as <a href=\"/records/location/location_1778664732556266_poi_otherLocations_3\">The Roseveil House</a>, and the roadside inn <a href=\"/records/location/location_1778664732556266_poi_otherLocations_1\">Der Weiße Hirsch</a>. Velmorne also contains several shrines and devotional alcoves in addition to its primary church structure, a feature often attributed to the persistence of older local traditions beneath official Orzhovan doctrine."
+      },
+      {
+        "title": "History",
+        "contents": "Prior to Althanian annexation, Velmorne was a center of regional worship devoted to Elen, a deity associated with spring fertility, sensuality, music, and healing waters. Pilgrims once traveled considerable distances to bathe in the hot springs beneath what is now <a href=\"/records/location/location_1778664732556266_poi_placeOfWorshipSize_0\">Our Lady of The Sacred Vigil</a>. Surviving accounts from early Orzhovan missionaries describe floral processions, masked midsummer rites, ritual dances, and offerings cast directly into the waters below the hill.<br>\n<br>\nFollowing the expansion of Church authority during the Third Century, the old sanctuary was condemned as a pagan cult site and destroyed. The present chapel-fortress of <a href=\"/records/location/location_1778664732556266_poi_placeOfWorshipSize_0\">Our Lady of The Sacred Vigil</a> was erected directly atop the spring cavern in an effort to suppress local worship and sanctify the area. While public adherence to the old faith diminished over generations, many customs endured in altered forms, particularly among foresters, midwives, and village musicians.<br>\n<br>\nVelmorne suffered heavily during the Grey Lung Plague approximately forty years ago, losing nearly a quarter of its population. Several communal burial trenches from this period remain in the northern woods, marked only by weathered prayer stones. Local folklore holds that strange singing can still be heard near these graves during thunderstorms."
+      },
+      {
+        "title": "Culture",
+        "contents": "Velmorne maintains a reputation throughout the region for lavish seasonal celebrations despite its relative poverty. The village’s midsummer festivals are especially well known, featuring lantern dances, elaborate wooden masks, floral garlands, and communal feasting at <a href=\"/records/location/location_1778664732556266_poi_gatheringPlaces_0\">Der Sommernacht</a>. Outsiders often describe the inhabitants as reserved during daylight hours but unusually uninhibited during festivals and evening gatherings.<br>\n<br>\nA common Velmorne superstition states that coins cast into the sacred wells surrounding the village must match the true worth of the wish being asked. To offer too little is believed to invite misfortune; to offer too much is said to bind the wisher to the springs forever."
+      }
+    ],
+    "createdAt": "2026-05-13T11:32:12.556266",
+    "updatedAt": "2026-05-13T20:55:36.395235",
+    "generatorState": {
+      "generator": "village",
+      "version": 1,
+      "selections": {
+        "age": [
+          {
+            "entryKey": "ancient",
+            "isManual": true
+          }
+        ],
+        "hardshipLikelihood": [
+          {
+            "entryKey": "one",
+            "baseRoll": 10,
+            "resolvedRoll": 6,
+            "tableModifier": -4
+          }
+        ],
+        "hardshipCount": [
+          {
+            "entryKey": "oneCount",
+            "tableModifier": 0
+          }
+        ],
+        "hardships": [
+          {
+            "entryKey": "plague",
+            "baseRoll": 1,
+            "resolvedRoll": 1,
+            "tableModifier": 0,
+            "hardshipOutcomeEntryKey": "moderateLosses"
+          }
+        ],
+        "size": [
+          {
+            "entryKey": "large",
+            "isManual": true
+          }
+        ],
+        "condition": [
+          {
+            "entryKey": "simple",
+            "baseRoll": 9,
+            "resolvedRoll": 9,
+            "tableModifier": 0
+          }
+        ],
+        "environment": [
+          {
+            "entryKey": "forest",
+            "isManual": true
+          }
+        ],
+        "populationDensity": [
+          {
+            "entryKey": "populous",
+            "baseRoll": 15,
+            "resolvedRoll": 8,
+            "tableModifier": -7
+          }
+        ],
+        "demographics": [
+          {
+            "entryKey": "onlyOne",
+            "baseRoll": 7,
+            "resolvedRoll": 7,
+            "tableModifier": 0
+          }
+        ],
+        "disposition": [
+          {
+            "entryKey": "neutral",
+            "baseRoll": 14,
+            "resolvedRoll": 14,
+            "tableModifier": 0
+          }
+        ],
+        "lawEnforcement": [
+          {
+            "entryKey": "disorganizedRabble",
+            "baseRoll": 8,
+            "resolvedRoll": 8,
+            "tableModifier": 0
+          }
+        ],
+        "leadership": [
+          {
+            "entryKey": "externalRuler",
+            "baseRoll": 3,
+            "resolvedRoll": 3,
+            "tableModifier": 0
+          }
+        ],
+        "populationWealth": [
+          {
+            "entryKey": "impoverished",
+            "baseRoll": 5,
+            "resolvedRoll": 5,
+            "tableModifier": 0
+          }
+        ],
+        "crime": [
+          {
+            "entryKey": "uncommon",
+            "baseRoll": 7,
+            "resolvedRoll": 5,
+            "tableModifier": -2
+          }
+        ],
+        "worshipPlaceCount": [
+          {
+            "entryKey": "largeCount",
+            "tableModifier": 0,
+            "isManual": true
+          }
+        ],
+        "placeOfWorshipSize": [
+          {
+            "entryKey": "temple",
+            "baseRoll": 10,
+            "resolvedRoll": 10,
+            "tableModifier": 0,
+            "worshipFervencyEntryKey": "zealous",
+            "worshipAlignmentEntryKey": "evil",
+            "isManual": true
+          },
+          {
+            "entryKey": "altar",
+            "baseRoll": 4,
+            "resolvedRoll": 4,
+            "tableModifier": 0,
+            "worshipFervencyEntryKey": "subtle",
+            "worshipAlignmentEntryKey": "neutral",
+            "isManual": true
+          }
+        ],
+        "gatheringPlaceCount": [
+          {
+            "entryKey": "largeCount",
+            "tableModifier": 0
+          }
+        ],
+        "gatheringPlaces": [
+          {
+            "entryKey": "danceHall",
+            "baseRoll": 2,
+            "resolvedRoll": 2,
+            "tableModifier": 0
+          }
+        ],
+        "otherLocationCount": [
+          {
+            "entryKey": "veryLargeCount",
+            "tableModifier": 0,
+            "isManual": true
+          }
+        ],
+        "otherLocations": [
+          {
+            "entryKey": "tannerTaxidermist",
+            "baseRoll": 22,
+            "resolvedRoll": 22,
+            "tableModifier": 0,
+            "isManual": true
+          },
+          {
+            "entryKey": "inn",
+            "baseRoll": 90,
+            "resolvedRoll": 90,
+            "tableModifier": 0,
+            "isManual": true
+          },
+          {
+            "entryKey": "rareLibationsFare",
+            "isManual": true
+          },
+          {
+            "entryKey": "houseOfLeisure",
+            "isManual": true
+          }
+        ],
+        "events": [
+          {
+            "entryKey": "local",
+            "baseRoll": 9,
+            "resolvedRoll": 9,
+            "tableModifier": 0
+          }
+        ],
+        "politicalRumors": [
+          {
+            "entryKey": "missingTaxman",
+            "baseRoll": 6,
+            "resolvedRoll": 6,
+            "tableModifier": 0
+          }
+        ],
+        "superstitions": [
+          {
+            "entryKey": "wellWishCoin",
+            "baseRoll": 15,
+            "resolvedRoll": 15,
+            "tableModifier": 0
+          }
+        ],
+        "goingsOn": [
+          {
+            "entryKey": "theyreMine",
+            "baseRoll": 5,
+            "resolvedRoll": 5,
+            "tableModifier": 0
+          }
+        ],
+        "opportunities": [
+          {
+            "entryKey": "haunting",
+            "baseRoll": 4,
+            "resolvedRoll": 4,
+            "tableModifier": 0
+          }
+        ],
+        "recentHarshWeather": [
+          {
+            "entryKey": "stormsOrBlizzards",
+            "baseRoll": 4,
+            "resolvedRoll": 4,
+            "tableModifier": 0
+          }
+        ],
+        "dangerHazardLikelihood": [
+          {
+            "entryKey": "medium",
+            "baseRoll": 8,
+            "resolvedRoll": 8,
+            "tableModifier": 0
+          }
+        ],
+        "dangerTypeCount": [
+          {
+            "entryKey": "mediumCount",
+            "tableModifier": 0
+          }
+        ],
+        "dangerType": [
+          {
+            "entryKey": "unwantedAttention",
+            "baseRoll": 5,
+            "resolvedRoll": 5,
+            "tableModifier": 0
+          }
+        ],
+        "specialty": [
+          {
+            "entryKey": "craftedGoods",
+            "baseRoll": 6,
+            "resolvedRoll": 6,
+            "tableModifier": 0
+          }
+        ],
+        "resource": [
+          {
+            "entryKey": "loggingLumber",
+            "isManual": true
+          }
+        ],
+        "history": [
+          {
+            "entryKey": "attacks",
+            "baseRoll": 2,
+            "resolvedRoll": 2,
+            "tableModifier": 0
+          }
+        ]
+      }
+    }
+  }
+}
